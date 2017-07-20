@@ -47,7 +47,7 @@ SECTION MBR vstart=0x7c00
 
     mov eax, LOADER_START_SECTOR ; 起始扇区的LBA地址，这里为第2号扇区, 即Boot Loader在磁盘中保存的位置
     mov bx, LOADER_BASE_ADDR ; 扇区中的内容写入到内存中时的起始地址, 这里即Boot Loader的起始地址
-    mov cx, 1 ; 待读入的扇区数
+    mov cx, 4 ; 待读入的扇区数
     call rd_disk_m_16
 
     jmp LOADER_BASE_ADDR ; MBR转交控制权到Boot Loader手中 
