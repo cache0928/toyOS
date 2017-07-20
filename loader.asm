@@ -75,5 +75,10 @@ p_mode_start:
     mov gs, ax
     ; 往显存段中写入数据
     mov byte [gs:160], 'P'
+    mov byte [gs:162], ' '
+    mov byte [gs:164], 'M'
+    mov byte [gs:166], 'O'
+    mov byte [gs:168], 'D'
+    mov byte [gs:170], 'E'
 
     jmp $
