@@ -50,7 +50,7 @@ SECTION MBR vstart=0x7c00
     mov cx, 4 ; 待读入的扇区数
     call rd_disk_m_16
 
-    jmp LOADER_BASE_ADDR ; MBR转交控制权到Boot Loader手中 
+    jmp LOADER_BASE_ADDR+0x300 ; MBR转交控制权到Boot Loader手中, 第一行代码在loader的0x300处 
 
 ; 函数，读取硬盘中的N个扇区
 ; eax=LBA扇区号

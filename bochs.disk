@@ -1,0 +1,10 @@
+megs: 32
+romimage: file=/Users/cache/Dropbox/Developer/bochs/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/Users/cache/Dropbox/Developer/bochs/share/bochs/VGABIOS-lgpl-latest
+boot: disk 
+mouse: enabled=0
+keyboard: type=mf, serial_delay=250, keymap=/Users/cache/Dropbox/Developer/bochs/share/bochs/keymaps/x11-pc-us.map
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+ata0-master: type=disk, path="hd60m.img", mode=flat
+
+# ./configure --prefix=/Users/cache/Documents/bochs --enable-debugger --enable-disasm --enable-iodebug --enable-x86-debugger --with-x --with-x11 --disable-debugger-gui
