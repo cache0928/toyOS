@@ -100,14 +100,6 @@ loader_start:
     add edx, 0x100000 ; 0x88号只返回1mb以上的内存，所以总容量要加上这1mb
 .mem_get_ok:
     mov [total_mem_bytes], edx
-.error_hlt:
-    jmp $
-
-
-
-
-
-
 
 ; 准备进入保护模式
 ; 1. 打开A20
@@ -127,6 +119,9 @@ loader_start:
     mov cr0, eax
 
     jmp dword SELECTOR_CODE:p_mode_start ;刷新流水线
+; 出错的时候挂起
+.error_hlt:
+    hlt
 
 [bits 32]
 p_mode_start:
@@ -145,4 +140,87 @@ p_mode_start:
     mov byte [gs:168], 'D'
     mov byte [gs:170], 'E'
 
+    ; 创建分页目录表及页表
+    call setup_pages
+; 为了把gdt在内存中的映射放到内核态，当前gdt的地址为0x900，因此要放到高1gb中，即0xc0000000+0x900
+; 显存也要放到内核态去，因此gdt中关于显存的段描述符中的段基址也要加上0xc0000000
+    sgdt [gdt_ptr] ; 先存gdtr的值到gdt_ptr的位置
+    ; 将显存的段基址+0xc0000000
+    mov ebx, [gdt_ptr + 2] ; ebx为gdt的起始位置
+    or dword [ebx + 0x18 + 4], 0xc0000000
+    ; 将gdt的基址+ 0xc0000000
+    add dword [gdt_ptr + 2], 0xc0000000
+
+    add esp, 0xc0000000
+
+    ; 赋值目录表地址给CR3
+    mov eax, PAGE_DIR_TABLE_POS
+    mov cr3, eax
+
+    ; 打开CR0的PG位
+    mov eax, cr0
+    or eax, 0x80000000
+    mov cr0, eax
+    ; 开启分页后重新加载GDT
+    lgdt [gdt_ptr]
+
+    ; 往显存段中写入数据
+    mov byte [gs:320], 'V'
+    mov byte [gs:322], ' '
+    mov byte [gs:324], 'A'
+    mov byte [gs:326], 'D'
+    mov byte [gs:328], 'D'
+    mov byte [gs:330], 'R'
+
     jmp $
+
+; 创建目录及页表
+; 目录表起始地址0x100000, 第一个页表地址0x101000, 内核在最低的1mb空间，用户态程序映射高1gb到内核
+setup_pages:
+    ; 先清空目录表所在内存
+    mov ecx, 4096
+    mov esi, 0
+.clear_page_dir:
+    mov byte [PAGE_DIR_TABLE_POS + esi], 0
+    inc esi
+    loop .clear_page_dir
+; 开始创建目录表，添加目录表项PDE
+.create_pde:
+    mov eax, PAGE_DIR_TABLE_POS
+    add eax, 0x1000 ; eax为第一个页表所在的位置，第一个页表将用来描述内核所在的最低1mb物理地址
+    mov ebx, eax
+    ; 页属性为用户态特权级可用，可读写，在内存中存在
+    or eax, PG_US_U | PG_RW_W | PG_P
+    ; 将目录第一项映射到第一个页表
+    ; 为了切换到分页机制后，loader中的通过段机制访问到的物理内存地址能和通过分页机制访问到的物理地址相同
+    ; 都为最低的1mb, 即在最低的1mb中，虚拟地址等于物理地址
+    mov [PAGE_DIR_TABLE_POS + 0x0], eax
+    ; 将第768项直到1022项，共255个页表映射1gb-4m空间到内核态，虽然内核代码只占据了最低的1mb
+    ; 开启分页机制以后，访问0xc0000000以上的地址即访问内核
+    mov [PAGE_DIR_TABLE_POS + 0xc00], eax
+    ; 将目录表的最后一项映射到目录表本身，为了以后通过这个地址可以修改页表内容
+    sub eax, 0x1000
+    mov [PAGE_DIR_TABLE_POS + 4092], eax
+    ; 创建页表项
+    mov ecx, 256
+    mov esi, 0
+    mov edx, PG_US_U | PG_RW_W | PG_P
+.create_pte: ; ebx为第一个页表项的地址，先映射1m到内核（物理内存最低的1mb, 0x00000-0xfffff）, 1mb / 4k = 256项
+    mov [ebx+esi*4], edx
+    add edx, 4096
+    inc esi
+    loop .create_pte
+    ; 填写目录表中的769-1022项，即映射到内核的其他目录项
+    ; 虽然内核当前只有1mb大小，把目录项全部填满是为了以后各个用户态之间关于内核映射的同步实现起来方便
+    mov eax, PAGE_DIR_TABLE_POS
+    add eax, 0x2000 ; eax为第二个页表的位置
+    or eax, PG_US_U | PG_RW_W | PG_P
+    mov ebx, PAGE_DIR_TABLE_POS
+    mov ecx, 254
+    mov esi, 769
+.create_kernel_pde:
+    mov [ebx+esi*4], eax
+    inc esi
+    add eax, 4096 ; 指向下一个页表
+    loop .create_kernel_pde
+    ret

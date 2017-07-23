@@ -2,6 +2,8 @@
 LOADER_BASE_ADDR equ 0x900
 ; BootLoader在磁盘上的起始LBA扇区编号
 LOADER_START_SECTOR equ 0x2
+; 分页目录表的起始位置
+PAGE_DIR_TABLE_POS equ 0x100000
 
 ; --------------   gdt描述符属性  -------------
 DESC_G_4K equ 1_00000000000000000000000b
@@ -30,10 +32,16 @@ DESC_TYPE_DATA equ 0010_00000000b
 DESC_CODE_HIGH4 equ (0x00 << 24) + DESC_G_4K + DESC_D_32 + DESC_L + DESC_AVL + DESC_LIMIT_CODE2 + DESC_P + DESC_DPL_0 + DESC_S_CODE + DESC_TYPE_CODE + 0x00
 DESC_DATA_HIGH4 equ (0x00 << 24) + DESC_G_4K + DESC_D_32 + DESC_L + DESC_AVL + DESC_LIMIT_DATA2 + DESC_P + DESC_DPL_0 + DESC_S_DATA + DESC_TYPE_DATA + 0x00
 DESC_VIDEO_HIGH4 equ (0x00 << 24) + DESC_G_4K + DESC_D_32 + DESC_L + DESC_AVL + DESC_LIMIT_VIDEO2 + DESC_P + DESC_DPL_0 + DESC_S_DATA + DESC_TYPE_DATA + 0x0b
-;--------------   选择子属性  ---------------
+;--------------   段选择子属性  ---------------
 RPL0  equ   00b
 RPL1  equ   01b
 RPL2  equ   10b
 RPL3  equ   11b
 TI_GDT	 equ   000b
 TI_LDT	 equ   100b
+;--------------   页表相关属性  ---------------
+PG_P equ 1b
+PG_RW_R equ 0_0b
+PG_RW_W equ 1_0b
+PG_US_S equ 0_00b
+PG_US_U equ 1_00b
