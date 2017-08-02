@@ -102,8 +102,8 @@ put_char:
 .roll_screen:
     cld
     mov ecx, 960
-    mov esi, 0xc00b8a0 ; 第1行首
-    mov edi, 0xc00b800 ; 第0行首
+    mov esi, 0xc00b80a0 ; 第1行首
+    mov edi, 0xc00b8000 ; 第0行首
     rep movsd
     ; 用空格填充最后一行
     mov ebx, 3840 ; 最后行首的字节号

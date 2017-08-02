@@ -1,14 +1,10 @@
 #include "print.h"
+#include "init.h"
 
-int main(void) {
-    put_char('p');
-    put_char('r');
-    put_char('i');
-    put_char('n');
-    put_char('t');
-    put_char('\n');
-    put_str("cache\n");
-    put_int(0x0123d);
+int main() {
+    put_str("my_os's kernel start\n");
+    init_all();
+    // asm volatile ("sti"); // 临时打开中断
     while(1);
     return 0;
 }

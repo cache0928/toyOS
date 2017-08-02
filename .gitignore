@@ -83,3 +83,4 @@ dkms.conf
 
 .DS_Store
 /.vscode
+/build
