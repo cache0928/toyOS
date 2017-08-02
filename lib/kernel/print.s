@@ -4,7 +4,7 @@ SELECTOR_VIDEO equ (0x0003<<3)+TI_GDT+RPL0
 
 [bits 32]
 section .data
-    put_int_buffer dq 0 ; 定义8字节缓冲区用于数字到字符串的转化
+put_int_buffer dq 0 ; 定义8字节缓冲区用于数字到字符串的转化
 ; put_char 将栈中的1个字符写入光标所在处
 ; put_str 通过put_char打印以0字符结尾的字符串
 ; put_int 通过put_char打印16进制数字，无0x前缀
