@@ -5,27 +5,35 @@ if !Dir.exist?("build") then
     Dir.mkdir("build", 755)
 end
 # 编译链接
+CC = "clang"
+ASM = "nasm"
+LD = "~/Dropbox/Developer/binutils/bin/i386-unknown-linux-gnu-ld"
+LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/"
+CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
+ASMFLAGS = "-f elf"
+LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
+OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o"
+
 puts "begin compile & link"
 `
-nasm -o build/mbr.bin -I boot/include/ boot/mbr.s
-nasm -o build/loader.bin -I boot/include/ boot/loader.s
-clang -target i386-apple-linux-elf -I lib/kernel/ -c -o build/timer.o device/timer.c
-clang -target i386-apple-linux-elf -I lib/kernel/ -I kernel/ -I device/ -fno-builtin -c -o build/init.o kernel/init.c
-clang -target i386-apple-linux-elf -I lib/kernel/ -I kernel/ -fno-builtin -c -o build/interrupt.o kernel/interrupt.c
-clang -target i386-apple-linux-elf -I lib/kernel/ -I kernel/ -fno-builtin -c -o build/main.o kernel/main.c
-clang -target i386-apple-linux-elf -I lib/kernel/ -I kernel/ -fno-builtin -c -o build/debug.o kernel/debug.c
-nasm -f elf -o build/print.o lib/kernel/print.s
-nasm -f elf -o build/kernel.o kernel/kernel.s
-alias i386-elf-ld=~/Dropbox/Developer/binutils/bin/i386-unknown-linux-gnu-ld
-i386-elf-ld -Ttext 0xc0001500 -e main -o build/kernel.bin build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o
+#{ASM} -o build/mbr.bin -I boot/include/ boot/mbr.s
+#{ASM} -o build/loader.bin -I boot/include/ boot/loader.s
+#{CC} #{CFLAGS} -o build/timer.o device/timer.c
+#{CC} #{CFLAGS} -o build/init.o kernel/init.c
+#{CC} #{CFLAGS} -o build/interrupt.o kernel/interrupt.c
+#{CC} #{CFLAGS} -o build/main.o kernel/main.c
+#{CC} #{CFLAGS} -o build/debug.o kernel/debug.c
+#{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
+#{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s
+#{LD} #{LDFLAGS} #{OBJS}
 `
 puts "compile & link successfully"
 # 写入到磁盘镜像中
-bochsDir = "/Users/cache/Dropbox/Developer/bochs/"
-FileUtils.cp("build/mbr.bin", bochsDir)
-FileUtils.cp("build/loader.bin", bochsDir)
-FileUtils.cp("build/kernel.bin", bochsDir)
-Dir.chdir(bochsDir)
+bochs_dir = "/Users/cache/Dropbox/Developer/bochs/"
+FileUtils.cp("build/mbr.bin", bochs_dir)
+FileUtils.cp("build/loader.bin", bochs_dir)
+FileUtils.cp("build/kernel.bin", bochs_dir)
+Dir.chdir(bochs_dir)
 puts "write mbr"
 `
 dd if=mbr.bin of=hd60m.img bs=512 count=1 conv=notrunc
