@@ -44,7 +44,10 @@ struct gate_desc {
     uint16_t func_offset_high_word;
 };
 
+char * intr_name[IDT_DESC_CNT]; // 中断的名称数组
 extern intr_handler intr_entry_table[IDT_DESC_CNT]; // 在kernel.s中的中断处理函数入口数组
+intr_handler idt_table[IDT_DESC_CNT]; // 实际的中断处理函数地址数组，通过上面的入口函数在汇编中call来进入
+
 // 构造中断门描述符的函数
 static void make_idt_desc(struct gate_desc *p_gdesc, uint8_t attr, intr_handler function);
 // 中断描述符表IDT，本质就是中断门描述符的数组
@@ -67,10 +70,56 @@ static void idt_desc_init() {
     put_str("   idt_desc_init done\n");
 }
 
+// 通用的中断处理函数，没有指定特定中断处理函数的时候就用这个
+static void general_intr_handler(uint8_t vec_nr) {
+    static int index = 0;
+    index++;
+    if (vec_nr == 0x27 || vec_nr == 0x2f) {
+        // IRQ7和IRQ15产生的是伪中断(一些电气信息异常之类的)，无需处理，直接跳过
+        return;
+    }
+    put_str("int vector : 0x");
+    put_int(vec_nr);
+    put_char(' ');
+    put_int(index);
+    put_char('\n');
+}
+
+// 填充中断名称数组，以及为每个中断设置默认的中断处理函数
+static void exception_init(void) {
+    int i;
+    for (i = 0; i < IDT_DESC_CNT; i++) {
+        /* idt_table数组中的函数是在进入中断后根据中断向量号调用的, call [idt_table + %1*4] */
+        idt_table[i] = general_intr_handler;
+        intr_name[i] = "unknown";
+    }
+    intr_name[0] = "#DE Divide Error";
+    intr_name[1] = "#DB Debug Exception";
+    intr_name[2] = "NMI Interrupt";
+    intr_name[3] = "#BP Breakpoint Exception";
+    intr_name[4] = "#OF Overflow Exception";
+    intr_name[5] = "#BR BOUND Range Exceeded Exception";
+    intr_name[6] = "#UD Invalid Opcode Exception";
+    intr_name[7] = "#NM Device Not Available Exception";
+    intr_name[8] = "#DF Double Fault Exception";
+    intr_name[9] = "Coprocessor Segment Overrun";
+    intr_name[10] = "#TS Invalid TSS Exception";
+    intr_name[11] = "#NP Segment Not Present";
+    intr_name[12] = "#SS Stack Fault Exception";
+    intr_name[13] = "#GP General Protection Exception";
+    intr_name[14] = "#PF Page-Fault Exception";
+    // intr_name[15] 第15项是intel保留项，未使用
+    intr_name[16] = "#MF x87 FPU Floating-Point Error";
+    intr_name[17] = "#AC Alignment Check Exception";
+    intr_name[18] = "#MC Machine-Check Exception";
+    intr_name[19] = "#XF SIMD Floating-Point Exception";
+}
+
 // 完成所有中断有关的初始化
 void idt_init() {
     put_str("idt_init start\n");
     idt_desc_init();
+    exception_init();
     pic_init();
 
     // 设置IDTR

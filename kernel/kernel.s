@@ -5,9 +5,9 @@
 %define ZERO push 0
 
 extern put_str ; 声明外部打印函数
+extern idt_table
 
 section .data
-intr_str db "interrupt occur!", 0xa, 0
 ; 编译之后，下面所有的.data会被排在一个segment中
 ; VECTOR宏每重复一次，就往其拥有的data section中添加一个中断处理程序的入口地址
 ; 最后合并在一起之后，intr_entry_table正好就是这个集合的第一个元素的地址，也就是C语言中的数组的地址
@@ -17,20 +17,37 @@ intr_entry_table:
 section .text
 intr%1entry:
     %2
-    push intr_str
-    call put_str
-    add esp, 4 ; 跳过参数
+    ; 保存上下文
+    push ds
+    push es
+    push fs
+    push gs
+    pushad
 
     ; 如果是从片上进入的中断,除了往从片上发送EOI外,还要往主片上发送EOI 
     mov al, 0x20 ; 中断结束命令EOI
     out 0xa0, al ; 向从片发送
     out 0x20, al ; 向主片发送
 
-    add esp, 4 ; 跨过error_code
-    iret ; 从中断返回,32位下等同指令iretd
+    push %1
+    call [idt_table + %1*4]
+    jmp intr_exit
 section .data
     dd intr%1entry	 ; 存储各个中断入口程序的地址，形成intr_entry_table数组
 %endmacro
+
+section .text
+global intr_exit
+intr_exit:
+    ; 恢复上下文
+    add esp, 4
+    popad
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    add esp, 4 ; 跳过error_code
+    iretd
 
 VECTOR 0x00, ZERO
 VECTOR 0x01, ZERO
