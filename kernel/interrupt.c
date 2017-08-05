@@ -6,6 +6,10 @@
 
 #define IDT_DESC_CNT 0x21 // 中断描述符表中描述符的个数
 
+#define EFLAGS_IF 0x00000200 // eflags寄存器中if位为1
+// 获取当前eflags寄存器值的宏
+#define GET_EFLAGS(EFLAG_VAR) asm volatile ("pushf; pop %0" : "=g" (EFLAG_VAR))
+
 // PIC 8259A的端口定义
 #define PIC_M_CTRL 0x20
 #define PIC_M_DATA 0x21
@@ -128,4 +132,40 @@ void idt_init() {
     asm volatile ("lidt %0" : : "m"(idt_operand));
 
     put_str("idt_init done\n");
+}
+
+// 打开中断，并返回开启中断前的状态
+enum intr_status intr_enable() {
+    enum intr_status old_status;
+    if (intr_get_status() == INTR_ON) {
+        old_status = INTR_ON;
+    } else {
+        old_status = INTR_OFF;
+        asm volatile ("sti"); // 开中断
+    }
+    return old_status;
+}
+
+// 关闭中断，并返回关闭中断前的状态
+enum intr_status intr_disable() {
+    enum intr_status old_status;
+    if (intr_get_status() == INTR_ON) {
+        old_status = INTR_ON;
+        asm volatile ("cli" : : : "memory"); // 关中断
+    } else {
+        old_status = INTR_OFF;
+    }
+    return old_status;
+}
+
+// 设置中断状态
+enum intr_status intr_set_status(enum intr_status status) {
+    return status & INTR_ON ? intr_enable() : intr_disable();
+}
+
+// 获取当前的中断状态
+enum intr_status intr_get_status() {
+    uint32_t eflags = 0;
+    GET_EFLAGS(eflags);
+    return (EFLAGS_IF & eflags) ? INTR_ON : INTR_OFF;
 }
