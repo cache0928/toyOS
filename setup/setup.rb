@@ -33,6 +33,7 @@ bochs_dir = "/Users/cache/Dropbox/Developer/bochs/"
 FileUtils.cp("build/mbr.bin", bochs_dir)
 FileUtils.cp("build/loader.bin", bochs_dir)
 FileUtils.cp("build/kernel.bin", bochs_dir)
+`rm -rf build/*`
 Dir.chdir(bochs_dir)
 puts "write mbr"
 `
