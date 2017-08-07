@@ -3,7 +3,7 @@
 #include "debug.h"
 
 // 将dst_起始的size个字节设置为value
-void memset(void dst_, uint8_t value, uint32_t size) {
+void memset(void *dst_, uint8_t value, uint32_t size) {
     ASSERT(dst_ != NULL);
     uint8_t *dst = (uint8_t *)dst_;
     while (size-- > 0) {
