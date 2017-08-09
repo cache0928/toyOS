@@ -8,12 +8,11 @@ end
 CC = "clang"
 ASM = "nasm"
 LD = "~/Dropbox/Developer/binutils/bin/i386-unknown-linux-gnu-ld"
-LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/"
+LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/"
 CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
 ASMFLAGS = "-f elf"
 LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
-OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o"
-
+OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o build/thread.o build/list.o"
 puts "begin compile & link"
 `
 #{ASM} -o build/mbr.bin -I boot/include/ boot/mbr.s
@@ -24,7 +23,9 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/main.o kernel/main.c
 #{CC} #{CFLAGS} -o build/debug.o kernel/debug.c
 #{CC} #{CFLAGS} -o build/bitmap.o lib/kernel/bitmap.c
+#{CC} #{CFLAGS} -o build/list.o lib/kernel/list.c
 #{CC} #{CFLAGS} -o build/memory.o kernel/memory.c
+#{CC} #{CFLAGS} -o build/thread.o thread/thread.c
 #{CC} #{CFLAGS} -o build/string.o lib/string.c
 #{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
 #{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s

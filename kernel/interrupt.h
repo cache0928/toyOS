@@ -1,6 +1,6 @@
 #ifndef __KERNEL_INTERRUPT_H
 #define __KERNEL_INTERRUPT_H
-typedef void* intr_handler;
+typedef void * intr_handler;
 void idt_init(void);
 // 中断状态
 enum intr_status {

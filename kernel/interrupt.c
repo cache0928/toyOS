@@ -48,7 +48,7 @@ struct gate_desc {
     uint16_t func_offset_high_word;
 };
 
-char * intr_name[IDT_DESC_CNT]; // 中断的名称数组
+char *intr_name[IDT_DESC_CNT]; // 中断的名称数组
 extern intr_handler intr_entry_table[IDT_DESC_CNT]; // 在kernel.s中的中断处理函数入口数组
 intr_handler idt_table[IDT_DESC_CNT]; // 实际的中断处理函数地址数组，通过上面的入口函数在汇编中call来进入
 
@@ -76,16 +76,12 @@ static void idt_desc_init() {
 
 // 通用的中断处理函数，没有指定特定中断处理函数的时候就用这个
 static void general_intr_handler(uint8_t vec_nr) {
-    static int index = 0;
-    index++;
     if (vec_nr == 0x27 || vec_nr == 0x2f) {
         // IRQ7和IRQ15产生的是伪中断(一些电气信息异常之类的)，无需处理，直接跳过
         return;
     }
     put_str("int vector : 0x");
     put_int(vec_nr);
-    put_char(' ');
-    put_int(index);
     put_char('\n');
 }
 
