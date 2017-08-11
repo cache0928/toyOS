@@ -185,3 +185,25 @@ put_int:
     jl .put_each_num
     popad
     ret
+
+global set_cursor
+set_cursor:
+    pushad
+    mov bx, [esp+36]
+    ; 将光标设置为bx的值
+    ; 高8位
+    mov dx, 0x03d4 ; 索引寄存器
+    mov al, 0x0e
+    out dx, al
+    mov dx, 0x03d5 ; 数据寄存器
+    mov al, bh
+    out dx, al
+    ; 低8位
+    mov dx, 0x03d4 ; 索引寄存器
+    mov al, 0x0f
+    out dx, al
+    mov dx, 0x03d5 ; 数据寄存器
+    mov al, bl
+    out dx, al
+    popad
+    ret

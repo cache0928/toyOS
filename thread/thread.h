@@ -1,6 +1,7 @@
 #ifndef __THREAD_THREAD_H
 #define __THREAD_THREAD_H
 #include "stdint.h"
+#include "list.h"
 // 线程函数的形参
 typedef void (*thread_func)(void *);
 
@@ -61,7 +62,19 @@ struct task_struct {
     enum task_status status;
     uint8_t priority; // 优先级
     char name[16];
+    uint8_t ticks; // 每次在处理器上执行的时钟周期
+    uint32_t elapsed_ticks; // 任务已经执行了多少个时钟周期
+    // 在就绪队列中的节点标记
+    struct list_elem general_tag;
+    // 在所有队列中的节点tag
+    struct list_elem all_list_tag;
+
+    uint32_t *pgdir; // 页表的虚拟地址 
     uint32_t stack_magic; // 栈的边界标记，用于判断栈是否溢出，魔数
 };
+struct task_struct *thread_start(char *name, int prio, thread_func function, void *func_arg);
+struct task_struct *running_thread();
+void schedule();
+void thread_init();
 
 #endif

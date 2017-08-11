@@ -80,9 +80,26 @@ static void general_intr_handler(uint8_t vec_nr) {
         // IRQ7和IRQ15产生的是伪中断(一些电气信息异常之类的)，无需处理，直接跳过
         return;
     }
-    put_str("int vector : 0x");
-    put_int(vec_nr);
-    put_char('\n');
+    set_cursor(0);
+    int cursor_pos = 0;
+    while (cursor_pos < 320) {
+        put_char(' ');
+        cursor_pos++;
+    }
+    set_cursor(0);
+    put_str("!!!!!!! excetion message begin !!!!!!!!\n");
+    set_cursor(88);
+    put_str(intr_name[vec_nr]);
+    if (vec_nr == 14) {
+        // 如果为Pagefault
+        int page_fault_vaddr = 0;
+        // cr2是存放造成pagefault的地址
+        asm ("movl %%cr2, %0" : "=r" (page_fault_vaddr));
+        put_str("\npage fault addr is ");
+        put_int(page_fault_vaddr);
+    }
+    put_str("\n!!!!!!! excetion message end !!!!!!!!!!\n");
+    while(1);
 }
 
 // 填充中断名称数组，以及为每个中断设置默认的中断处理函数
@@ -113,6 +130,11 @@ static void exception_init(void) {
     intr_name[17] = "#AC Alignment Check Exception";
     intr_name[18] = "#MC Machine-Check Exception";
     intr_name[19] = "#XF SIMD Floating-Point Exception";
+}
+
+// 给中断号注册中断处理函数
+void register_handler(uint8_t vector_no, intr_handler function) {
+    idt_table[vector_no] = function;
 }
 
 // 完成所有中断有关的初始化

@@ -3,11 +3,31 @@
 #include "string.h"
 #include "global.h"
 #include "memory.h"
+#include "interrupt.h"
+#include "debug.h"
+#include "list.h"
+#include "print.h"
 
 #define PG_SIZE 4096
 
+struct task_struct *main_thread; // 主线程的pcb
+struct list thread_ready_list; // 就绪队列
+struct list thread_all_list; // 所有任务队列
+static struct list_elem *thread_tag;
+
+extern void switch_to(struct task_struct *cur, struct task_struct *next);
+
+// 获取当前线程的pcb
+struct task_struct *running_thread() {
+    uint32_t esp;
+    asm ("mov %%esp, %0" : "=g" (esp));
+    return (struct task_struct *)(esp & 0xfffff000);
+}
+
 // 线程中由kernel_thread去执行线程函数
 static void kernel_thread(thread_func function, void *func_arg) {
+    // 进时钟中断后，中断已经被关了，所以这里要打开，否则后面没法再调度了
+    intr_enable();
     function(func_arg);
 }
 
@@ -29,10 +49,19 @@ void thread_create(struct task_struct *pthread, thread_func function, void *func
 void init_thread(struct task_struct *pthread, char *name, int prio) {
     memset(pthread, 0, sizeof(*pthread));
     strcpy(pthread->name, name);
-    pthread->status = TASK_RUNNING;
+    if (pthread == main_thread) {
+        // 刚开始就是在主线程上初始化主线程pcb，所以状态一定是running
+        pthread->status = TASK_RUNNING;
+    } else {
+        pthread->status = TASK_READY;
+    }
     pthread->priority = prio;
     // 初始化自己的内核栈顶地址到PCB所在页的顶部
     pthread->self_kstack = (uint32_t *)((uint32_t)pthread + PG_SIZE);
+    pthread->ticks = prio;
+    pthread->elapsed_ticks = 0;
+    // 线程没有页表，而是共享进程的页表，所以为NULL
+    pthread->pgdir = NULL;
     pthread->stack_magic = 0x19920928; // 自定义魔数
 }
 
@@ -42,7 +71,47 @@ struct task_struct *thread_start(char *name, int prio, thread_func function, voi
     struct task_struct *thread = get_kernel_pages(1);
     init_thread(thread, name, prio);
     thread_create(thread, function, func_arg);
-    asm volatile ("movl %0, %%esp; pop %%ebp; pop %%ebx; pop %%edi; pop %%esi; ret" : : "g" (thread->self_kstack) : "memory");
+    // 加入到就绪队列和全部队列中
+    ASSERT(!elem_find(&thread_ready_list, &thread->general_tag));
+    list_append(&thread_ready_list, &thread->general_tag);
+    ASSERT(!elem_find(&thread_all_list, &thread->all_list_tag));
+    list_append(&thread_all_list, &thread->all_list_tag);
     return thread;
 }
 
+// 构造主线程的pcb
+static void make_main_thread() {
+    main_thread = running_thread();
+    init_thread(main_thread, "main", 31);
+    ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
+    list_append(&thread_all_list, &main_thread->all_list_tag);
+}
+
+// 任务调度
+void schedule() {
+    ASSERT(intr_get_status() == INTR_OFF);
+    struct task_struct *cur = running_thread();
+    if (cur->status == TASK_RUNNING) {
+        ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+        list_append(&thread_ready_list, &cur->general_tag);
+        cur->ticks = cur->priority;
+        cur->status = TASK_READY;
+    } else {
+        // 出现了阻塞等情况
+    }
+    ASSERT(!list_empty(&thread_ready_list));
+    thread_tag = NULL;
+    thread_tag = list_pop(&thread_ready_list);
+    struct task_struct *next = elem2entry(struct task_struct, general_tag, thread_tag);
+    next->status = TASK_RUNNING;
+    switch_to(cur, next);
+}
+
+// 开启多线程环境
+void thread_init() {
+    put_str("thread_init start\n");
+    list_init(&thread_ready_list);
+    list_init(&thread_all_list);
+    make_main_thread();
+    put_str("thread_init_done\n");
+}
