@@ -97,7 +97,8 @@ void schedule() {
         cur->ticks = cur->priority;
         cur->status = TASK_READY;
     } else {
-        // 出现了阻塞等情况
+        // 出现了阻塞等情况，就不要将当前线程再加入到就绪队列里
+        // 而是应该唤醒的时候再加入
     }
     ASSERT(!list_empty(&thread_ready_list));
     thread_tag = NULL;
@@ -114,4 +115,30 @@ void thread_init() {
     list_init(&thread_all_list);
     make_main_thread();
     put_str("thread_init_done\n");
+}
+
+// 阻塞线程
+void thread_block(enum task_status stat) {
+    ASSERT((stat == TASK_BLOCKED || stat == TASK_HANGING || stat == TASK_WAITING));
+    enum intr_status old_status = intr_disable();
+    struct task_struct *cur_thread = running_thread();
+    cur_thread->status = stat;
+    schedule();
+    intr_set_status(old_status);
+}
+
+// 唤醒目标线程
+void thread_unblock(struct task_struct *pthread) {
+    enum intr_status old_status = intr_disable();
+    ASSERT((pthread->status == TASK_BLOCKED || pthread->status == TASK_HANGING || pthread->status == TASK_WAITING));
+    if (pthread->status != TASK_READY) {
+        ASSERT(!elem_find(&thread_ready_list, &pthread->general_tag));
+        if (elem_find(&thread_ready_list, &pthread->general_tag)) {
+            PANIC("thread_unlock: blocked thread in ready_list");
+        }
+        // 放到队列最前端以求最快得到调度
+        list_push(&thread_ready_list, &pthread->general_tag);
+        pthread->status = TASK_READY;
+    }
+    intr_set_status(old_status);
 }
