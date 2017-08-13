@@ -12,7 +12,7 @@ LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/"
 CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
 ASMFLAGS = "-f elf"
 LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
-OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o build/thread.o build/list.o build/switch.o build/sync.o build/console.o"
+OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o build/thread.o build/list.o build/switch.o build/sync.o build/console.o build/keyboard.o"
 puts "begin compile & link"
 `
 #{ASM} -o build/mbr.bin -I boot/include/ boot/mbr.s
@@ -29,6 +29,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/string.o lib/string.c
 #{CC} #{CFLAGS} -o build/sync.o thread/sync.c
 #{CC} #{CFLAGS} -o build/console.o device/console.c
+#{CC} #{CFLAGS} -o build/keyboard.o device/keyboard.c
 #{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
 #{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s
 #{ASM} #{ASMFLAGS} -o build/switch.o thread/switch.s

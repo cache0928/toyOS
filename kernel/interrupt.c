@@ -4,7 +4,7 @@
 #include "print.h"
 #include "io.h"
 
-#define IDT_DESC_CNT 0x21 // 中断描述符表中描述符的个数
+#define IDT_DESC_CNT 0x30 // 中断描述符表中描述符的个数
 
 #define EFLAGS_IF 0x00000200 // eflags寄存器中if位为1
 // 获取当前eflags寄存器值的宏
@@ -32,8 +32,9 @@ static void pic_init() {
     outb(PIC_S_DATA, 0x02); // ICW3: 设置从片连接到主片的IR2引脚
     outb(PIC_S_DATA, 0x01); // ICW4: 8086模式，正常手动发送EOI
 
-    // 发送OCW1，设置屏蔽哪些外设的中断信号，目前只接受时钟中断
-    outb(PIC_M_DATA, 0xfe);
+    // 发送OCW1，设置屏蔽哪些外设的中断信号，目前只接受键盘中断
+    // outb(PIC_M_DATA, 0xfe);
+    outb(PIC_M_DATA, 0xfd);
     outb(PIC_S_DATA, 0xff); 
 
     put_str("   pic_init done\n");
