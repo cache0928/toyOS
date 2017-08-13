@@ -4,6 +4,7 @@
 #include "global.h"
 #include "interrupt.h"
 #include "stdint.h"
+#include "ioqueue.h"
 
 // 键盘buffer寄存器的端口
 #define KBD_BUF_PORT 0x60
@@ -102,6 +103,8 @@ static char keymap[][2] = {
 /*其它按键暂不处理*/
 };
 
+static struct ioqueue kbd_buf;
+
 static void intr_keyboard_handler() {
     // 上一次中断发生时，以下3个键的状态
     bool ctrl_down_last = ctrl_status;
@@ -157,7 +160,10 @@ static void intr_keyboard_handler() {
         char cur_char = keymap[index][shift];
         // 只打印拥有对应ASCII的按键
         if (cur_char) {
-            put_char(cur_char);
+            if (!ioq_full(&kbd_buf)) {
+                put_char(cur_char);
+                ioq_putchar(&kbd_buf, cur_char);
+            }
             return;
         }
         // 如果本次按下的是控制键
@@ -178,6 +184,7 @@ static void intr_keyboard_handler() {
 
 void keyboard_init() {
     put_str("keyboard init start\n");
+    ioqueue_init(&kbd_buf);
     register_handler(0x21, intr_keyboard_handler);
     put_str("keyboard init done\n");
 }
