@@ -32,9 +32,8 @@ static void pic_init() {
     outb(PIC_S_DATA, 0x02); // ICW3: 设置从片连接到主片的IR2引脚
     outb(PIC_S_DATA, 0x01); // ICW4: 8086模式，正常手动发送EOI
 
-    // 发送OCW1，设置屏蔽哪些外设的中断信号，目前只接受键盘中断
-    // outb(PIC_M_DATA, 0xfe);
-    outb(PIC_M_DATA, 0xfd);
+    // 发送OCW1，设置屏蔽哪些外设的中断信号，目前只接受键盘中断和时钟中断
+    outb(PIC_M_DATA, 0xfc);
     outb(PIC_S_DATA, 0xff); 
 
     put_str("   pic_init done\n");
