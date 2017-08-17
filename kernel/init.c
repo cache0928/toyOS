@@ -6,6 +6,7 @@
 #include "thread.h"
 #include "console.h"
 #include "keyboard.h"
+#include "tss.h"
 
 void init_all() {
     put_str("init_all\n");
@@ -15,4 +16,5 @@ void init_all() {
     thread_init(); // 初始化多线程环境
     console_init(); // 初始化控制台
     keyboard_init(); // 初始化键盘
+    tss_init(); // 初始化TSS，重载GDT
 }

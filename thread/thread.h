@@ -2,6 +2,7 @@
 #define __THREAD_THREAD_H
 #include "stdint.h"
 #include "list.h"
+#include "memory.h"
 // 线程函数的形参
 typedef void (*thread_func)(void *);
 
@@ -32,7 +33,7 @@ struct intr_stack {
     uint32_t ds;
     // 低特权级进入高特权级时还会压入
     uint32_t err_code; // 错误号
-    void (*eip)(void);
+    void (*eip)();
     uint32_t cs;
     uint32_t eflags;
     void *esp;
@@ -70,6 +71,7 @@ struct task_struct {
     struct list_elem all_list_tag;
 
     uint32_t *pgdir; // 页表的虚拟地址 
+    struct virtual_addr userprog_vaddr; // 用户进程的虚拟内存池
     uint32_t stack_magic; // 栈的边界标记，用于判断栈是否溢出，魔数
 };
 struct task_struct *thread_start(char *name, int prio, thread_func function, void *func_arg);
@@ -78,5 +80,8 @@ void schedule();
 void thread_init();
 void thread_block(enum task_status stat);
 void thread_unblock(struct task_struct *pthread);
-
+void thread_create(struct task_struct *pthread, thread_func function, void *func_arg);
+void init_thread(struct task_struct *pthread, char *name, int prio);
+extern struct list thread_ready_list; // 就绪队列
+extern struct list thread_all_list; // 所有任务队列
 #endif

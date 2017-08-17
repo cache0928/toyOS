@@ -8,11 +8,11 @@ end
 CC = "clang"
 ASM = "nasm"
 LD = "~/Dropbox/Developer/binutils/bin/i386-unknown-linux-gnu-ld"
-LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/"
+LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/ -I userprog/"
 CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
 ASMFLAGS = "-f elf"
 LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
-OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o build/thread.o build/list.o build/switch.o build/sync.o build/console.o build/keyboard.o build/ioqueue.o"
+OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o build/thread.o build/list.o build/switch.o build/sync.o build/console.o build/keyboard.o build/ioqueue.o build/tss.o build/process.o"
 puts "begin compile & link"
 `
 #{ASM} -o build/mbr.bin -I boot/include/ boot/mbr.s
@@ -31,6 +31,8 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/console.o device/console.c
 #{CC} #{CFLAGS} -o build/ioqueue.o device/ioqueue.c
 #{CC} #{CFLAGS} -o build/keyboard.o device/keyboard.c
+#{CC} #{CFLAGS} -o build/tss.o userprog/tss.c
+#{CC} #{CFLAGS} -o build/process.o userprog/process.c
 #{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
 #{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s
 #{ASM} #{ASMFLAGS} -o build/switch.o thread/switch.s
@@ -59,6 +61,7 @@ puts "write kernel"
 dd if=kernel.bin of=hd60m.img bs=512 count=200 seek=9 conv=notrunc
 `
 puts "write kernel done"
+FileUtils.cp("kernel.bin", "/Users/cache/Desktop/kernel.bin")
 FileUtils.rm("kernel.bin")
 FileUtils.rm("mbr.bin")
 FileUtils.rm("loader.bin")

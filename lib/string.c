@@ -1,6 +1,7 @@
 #include "string.h"
-#include "global.h"
 #include "debug.h"
+#include "print.h"
+#include "global.h"
 
 // 将dst_起始的size个字节设置为value
 void memset(void *dst_, uint8_t value, uint32_t size) {
@@ -22,7 +23,7 @@ void memcpy(void *dst_, const void *src_, uint32_t size) {
 }
 
 // 连续比较以地址a_和地址b_开头的size个字节，相等返回0，a_>b_返回1，否则返回-1
-int8_t memcmp(const void *a_, const void *b_, uint32_t size) {
+int memcmp(const void *a_, const void *b_, uint32_t size) {
     const char *a = a_;
     const char *b = b_;
     ASSERT(a != NULL || b != NULL);

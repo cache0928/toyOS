@@ -7,8 +7,8 @@
 #include "debug.h"
 #include "list.h"
 #include "print.h"
+#include "process.h"
 
-#define PG_SIZE 4096
 
 struct task_struct *main_thread; // 主线程的pcb
 struct list thread_ready_list; // 就绪队列
@@ -105,6 +105,8 @@ void schedule() {
     thread_tag = list_pop(&thread_ready_list);
     struct task_struct *next = elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
+    // 切换页表，如果是下一个是进程，还要更换TSS
+    process_activate(next);
     switch_to(cur, next);
 }
 
