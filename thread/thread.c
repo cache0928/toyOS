@@ -8,6 +8,7 @@
 #include "list.h"
 #include "print.h"
 #include "process.h"
+#include "sync.h"
 
 
 struct task_struct *main_thread; // 主线程的pcb
@@ -45,9 +46,20 @@ void thread_create(struct task_struct *pthread, thread_func function, void *func
     kthread_stack->ebp = kthread_stack->ebx = kthread_stack->esi = kthread_stack->edi = 0;
 }
 
+struct lock pid_lock;
+
+static pid_t allocate_pid() {
+    static pid_t next_pid = 0;
+    lock_acquire(&pid_lock);
+    next_pid++;
+    lock_release(&pid_lock);
+    return next_pid;
+}
+
 // 初始化线程基本信息
 void init_thread(struct task_struct *pthread, char *name, int prio) {
     memset(pthread, 0, sizeof(*pthread));
+    pthread->pid = allocate_pid();
     strcpy(pthread->name, name);
     if (pthread == main_thread) {
         // 刚开始就是在主线程上初始化主线程pcb，所以状态一定是running
@@ -115,6 +127,7 @@ void thread_init() {
     put_str("thread_init start\n");
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
+    lock_init(&pid_lock);
     make_main_thread();
     put_str("thread_init_done\n");
 }

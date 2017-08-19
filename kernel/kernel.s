@@ -1,4 +1,5 @@
 [bits 32]
+
 ; 若在相关的异常中cpu已经自动压入了错误码,为保持栈中格式统一,这里不做操作.
 %define ERROR_CODE nop
 ; 若在相关的异常中cpu没有压入错误码,为了统一栈中格式,就手工压入一个0
@@ -98,3 +99,28 @@ VECTOR 0x2c, ZERO ; ps/2鼠标
 VECTOR 0x2d, ZERO ; fpu浮点单元异常
 VECTOR 0x2e, ZERO ; 硬盘
 VECTOR 0x2f, ZERO
+
+[bits 32]
+extern syscall_table
+section .text
+global syscall_handler
+syscall_handler:
+    ; 为了能复用intr_exit，所以把栈布局调整的和intr_entry时一致
+    push 0 ; 对应ERROR_CODE或者NOP
+    push ds
+    push es
+    push fs
+    push gs
+    pushad
+
+    push 0x80 ; 对应中断号
+    ; 参数入栈
+    push edx
+    push ecx
+    push ebx
+    ; eax为对应的子功能号，syscall_table为函数指针数组，一个元素4字节
+    call [syscall_table + eax*4]
+    add esp, 12
+    ; call之后结果在eax中，将其存储到上述pushad之后eax的位置，退出中断返回至用户态时可以赋值回eax中
+    mov [esp+8*4], eax
+    jmp intr_exit
