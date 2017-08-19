@@ -12,7 +12,6 @@ LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/ -I 
 CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
 ASMFLAGS = "-f elf"
 LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
-OBJS = "build/main.o build/init.o build/interrupt.o build/timer.o build/kernel.o build/print.o build/debug.o build/bitmap.o build/memory.o build/string.o build/thread.o build/list.o build/switch.o build/sync.o build/console.o build/keyboard.o build/ioqueue.o build/tss.o build/process.o build/syscall.o build/syscall-init.o"
 puts "begin compile & link"
 `
 #{ASM} -o build/mbr.bin -I boot/include/ boot/mbr.s
@@ -38,9 +37,15 @@ puts "begin compile & link"
 #{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
 #{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s
 #{ASM} #{ASMFLAGS} -o build/switch.o thread/switch.s
+`
+OBJS = "build/main.o " + (`ls build/`).split.find_all { |file|
+    file.end_with?(".o") && file != "main.o"
+}.map{ |x| "build/" + x }.join(' ')
+`
 #{LD} #{LDFLAGS} #{OBJS}
 `
 puts "compile & link successfully"
+
 # 写入到磁盘镜像中
 bochs_dir = "/Users/cache/Dropbox/Developer/bochs/"
 FileUtils.cp("build/mbr.bin", bochs_dir)
