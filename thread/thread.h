@@ -73,6 +73,7 @@ struct task_struct {
 
     uint32_t *pgdir; // 页表的虚拟地址 
     struct virtual_addr userprog_vaddr; // 用户进程的虚拟内存池
+    struct mem_block_desc u_blcok_desc[DESC_CNT]; // 用户进程的内存块描述符
     uint32_t stack_magic; // 栈的边界标记，用于判断栈是否溢出，魔数
 };
 struct task_struct *thread_start(char *name, int prio, thread_func function, void *func_arg);

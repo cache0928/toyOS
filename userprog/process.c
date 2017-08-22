@@ -93,6 +93,8 @@ void process_execute(void *filename, char *process_name) {
     thread_create(thread, start_process, filename);
     // 创建进程的页目录表
     thread->pgdir = create_page_dir();
+    
+    block_desc_init(thread->u_blcok_desc);
 
     // 将新进程加入到调度队列
     enum intr_status old_status = intr_disable();

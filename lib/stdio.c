@@ -2,9 +2,9 @@
 #include "global.h"
 #include "string.h"
 #include "syscall.h"
-typedef char * va_list;
-// 可变参数的原理就是通过寻找format字符串中的%，通过栈指针来获取对应的栈中的参数
 // #define va_start(ap, v) ap = (va_list)&v 
+// 可变参数的原理就是通过寻找format字符串中的%，通过栈指针来获取对应的栈中的参数
+typedef char * va_list;
 #define va_start(ap) asm volatile ("movl %%ebp, %0" : : "m"(ap) : "memory"); ap += 8 // 将ap指向第一个固定参数v
 #define va_arg(ap, t) *((t *)(ap += 4)) // ap指向下一个参数，并按t所代表的类型返回其值
 #define va_end(ap) ap = NULL // 清除ap
