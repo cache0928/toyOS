@@ -35,3 +35,11 @@ uint32_t getpid() {
 uint32_t write(char *str) {
     return _syscall1(SYS_WRITE, str);
 }
+
+void *malloc(uint32_t size) {
+    return (void *)_syscall1(SYS_MALLOC, size);
+}
+
+void free(void *vaddr) {
+    _syscall1(SYS_FREE, vaddr);
+}
