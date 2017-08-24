@@ -15,7 +15,9 @@ struct lock {
     struct semaphore semaphore; // 信号量
     uint32_t holder_repeat_nr; // 持有者申请锁的次数
 };
-
+void sema_init(struct semaphore *psema, uint8_t value);
+void sema_down(struct semaphore *psema);
+void sema_up(struct semaphore *psema);
 void lock_init(struct lock *plock);
 void lock_release(struct lock *plock);
 void lock_acquire(struct lock *plock);

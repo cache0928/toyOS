@@ -3,11 +3,6 @@
 #include "string.h"
 #include "syscall.h"
 // #define va_start(ap, v) ap = (va_list)&v 
-// 可变参数的原理就是通过寻找format字符串中的%，通过栈指针来获取对应的栈中的参数
-typedef char * va_list;
-#define va_start(ap) asm volatile ("movl %%ebp, %0" : : "m"(ap) : "memory"); ap += 8 // 将ap指向第一个固定参数v
-#define va_arg(ap, t) *((t *)(ap += 4)) // ap指向下一个参数，并按t所代表的类型返回其值
-#define va_end(ap) ap = NULL // 清除ap
 
 // 将整形转换成字符
 static void itoa(uint32_t value, char **buf_ptr_addr, uint8_t base) {
@@ -84,6 +79,7 @@ uint32_t sprintf(char *buf, const char *format, ...) {
     va_list args;
     uint32_t retval;
     va_start(args);
+    args+=4;
     retval = vsprintf(buf, format, args);
     va_end(args);
     return retval;

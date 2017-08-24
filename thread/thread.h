@@ -81,6 +81,7 @@ struct task_struct *running_thread();
 void schedule();
 void thread_init();
 void thread_block(enum task_status stat);
+void thread_yield();
 void thread_unblock(struct task_struct *pthread);
 void thread_create(struct task_struct *pthread, thread_func function, void *func_arg);
 void init_thread(struct task_struct *pthread, char *name, int prio);

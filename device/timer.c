@@ -1,7 +1,6 @@
 #include "timer.h"
 #include "io.h"
 #include "print.h"
-#include "stdint.h"
 #include "thread.h"
 #include "interrupt.h"
 #include "debug.h"
@@ -24,6 +23,8 @@ static void frequency_set(uint8_t counter_port, uint8_t counter_no, uint8_t rwl,
     outb(counter_port, (uint8_t)(counter_value >> 8));
 }
 
+// 每次中断的间隔时间 ms
+#define mil_seconds_per_intr (1000 / IRQ0_FREQUENCY)
 
 uint32_t ticks; // 内核自中断开启以后总的嘀嗒数
 
@@ -47,4 +48,19 @@ void timer_init() {
     frequency_set(COUNTER0_PORT, COUNTER0_NO, READ_WRITE_LATCH, COUNTER_MODE, COUNTER0_VALUE);
     register_handler(0x20, intr_timer_handler);
     put_str("timer_init done\n");
+}
+
+// 以tick为单位的睡眠，所有按时间长度的睡眠都会先转换成tick，然后调用此函数
+static void ticks_to_sleep(uint32_t sleep_ticks) {
+    uint32_t start_tick = ticks;
+    while (ticks - start_tick < sleep_ticks) {
+        thread_yield();
+    }
+}
+
+// 以毫秒为单位的sleep实现
+void mtime_sleep(uint32_t m_seconds) {
+    uint32_t sleep_ticks = DIV_ROUND_UP(m_seconds, mil_seconds_per_intr);
+    ASSERT(sleep_ticks > 0);
+    ticks_to_sleep(sleep_ticks);
 }

@@ -53,8 +53,10 @@ static void pic_init() {
 	outb (PIC_S_DATA, 0x01);    // ICW4: 8086模式, 正常EOI
 
 	// 写入中断屏蔽口，0为打开，1为屏蔽
-	outb (PIC_M_DATA, 0xfe);
-	outb (PIC_S_DATA, 0xff);
+	// 主片打开0时钟，1键盘和2级联
+	outb (PIC_M_DATA, 0xf8);
+	// 从片打开14硬盘
+	outb (PIC_S_DATA, 0xbf);
 
 	put_str("   pic_init done\n");
 }

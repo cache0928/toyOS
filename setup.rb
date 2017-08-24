@@ -22,6 +22,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/main.o kernel/main.c
 #{CC} #{CFLAGS} -o build/debug.o kernel/debug.c
 #{CC} #{CFLAGS} -o build/bitmap.o lib/kernel/bitmap.c
+#{CC} #{CFLAGS} -o build/stdio-kernel.o lib/kernel/stdio-kernel.c
 #{CC} #{CFLAGS} -o build/list.o lib/kernel/list.c
 #{CC} #{CFLAGS} -o build/memory.o kernel/memory.c
 #{CC} #{CFLAGS} -o build/thread.o thread/thread.c
@@ -29,6 +30,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/sync.o thread/sync.c
 #{CC} #{CFLAGS} -o build/console.o device/console.c
 #{CC} #{CFLAGS} -o build/ioqueue.o device/ioqueue.c
+#{CC} #{CFLAGS} -o build/ide.o device/ide.c
 #{CC} #{CFLAGS} -o build/keyboard.o device/keyboard.c
 #{CC} #{CFLAGS} -o build/tss.o userprog/tss.c
 #{CC} #{CFLAGS} -o build/process.o userprog/process.c
