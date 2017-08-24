@@ -18,6 +18,16 @@ static struct list_elem *thread_tag;
 
 extern void switch_to(struct task_struct *cur, struct task_struct *next);
 
+struct task_struct *idle_thread; // 空载线程
+
+// 空载任务
+static void idle(void *arg) {
+    while(1) {
+        thread_block(TASK_BLOCKED);
+        asm volatile ("sti;hlt" : : : "memory");
+    }
+}
+
 // 获取当前线程的pcb
 struct task_struct *running_thread() {
     uint32_t esp;
@@ -112,6 +122,9 @@ void schedule() {
         // 出现了阻塞等情况，就不要将当前线程再加入到就绪队列里
         // 而是应该唤醒的时候再加入
     }
+    if (list_empty(&thread_ready_list)) {
+        thread_unblock(idle_thread);
+    }
     ASSERT(!list_empty(&thread_ready_list));
     thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
@@ -129,7 +142,19 @@ void thread_init() {
     list_init(&thread_all_list);
     lock_init(&pid_lock);
     make_main_thread();
+    idle_thread = thread_start("idle", 10, idle, NULL);
     put_str("thread_init_done\n");
+}
+
+// 主动让出CPU，与阻塞不同的地方在于当前线程的状态是READY，而不是BLOCK
+void thread_yield() {
+    struct task_struct *cur = running_thread();
+    enum intr_status old_status = intr_disable();
+    ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+    list_append(&thread_ready_list, &cur->general_tag);
+    cur->status = TASK_READY;
+    schedule();
+    intr_set_status(old_status);
 }
 
 // 阻塞线程

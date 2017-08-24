@@ -6,5 +6,6 @@ mouse: enabled=0
 keyboard: type=mf, serial_delay=250, keymap=/Users/cache/Dropbox/Developer/bochs/share/bochs/keymaps/x11-pc-us.map
 ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=disk, path="hd60m.img", mode=flat
+ata0-slave: type=disk, path="hd80m.img", mode=flat
 
 # ./configure --prefix=/Users/cache/Documents/bochs --enable-debugger --enable-disasm --enable-iodebug --enable-x86-debugger --with-x --with-x11 --disable-debugger-gui
