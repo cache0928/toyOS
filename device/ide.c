@@ -34,8 +34,6 @@
 
 #define max_lba ((80*1024*1024/512) - 1)
 
-uint8_t channel_cnt; // 通道数
-struct ide_channel channels[2]; // 最多2通道
 
 // 选择需要读写操作的目标硬盘
 static void select_disk(struct disk *hd) {
@@ -203,7 +201,6 @@ void intr_hd_handler(uint8_t irq_no) {
 
 int32_t ext_lba_base = 0; // 总拓展分区的起始LBA
 uint8_t p_no = 0, l_no = 0;	 // 用来记录硬盘主分区和逻辑分区的下标
-struct list partition_list;	 // 分区队列
 
 // 构建一个16字节大小的结构体,用来存分区表项
 struct partition_table_entry {

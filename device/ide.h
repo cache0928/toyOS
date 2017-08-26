@@ -4,6 +4,7 @@
 #include "list.h"
 #include "bitmap.h"
 #include "sync.h"
+#include "super_block.h"
 // 分区
 struct partition {
     uint32_t start_lba;
@@ -12,8 +13,11 @@ struct partition {
     struct list_elem part_tag;
     char name[8];
     // 用于文件系统
-    void *sb;
+    // 分区的超级块指针
+    struct super_block *sb;
+    // 空闲块位图
     struct bitmap block_bitmap;
+    // inode位图
     struct bitmap inode_bitmap;
     struct list open_inodes;
 
@@ -39,6 +43,10 @@ struct ide_channel {
     struct semaphore disk_done;
     struct disk devices[2]; // 主从硬盘
 };
+uint8_t channel_cnt; // 通道数
+struct ide_channel channels[2]; // 通道数组，最多2通道
+struct list partition_list;	 // 分区队列
+
 void ide_init();
 void ide_read(struct disk *hd, uint32_t lba, void *buf, uint32_t sec_cnt);
 void ide_write(struct disk *hd, uint32_t lba, void *buf, uint32_t sec_cnt);

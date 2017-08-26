@@ -8,7 +8,7 @@ end
 CC = "clang"
 ASM = "nasm"
 LD = "~/Dropbox/Developer/binutils/bin/i386-unknown-linux-gnu-ld"
-LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/ -I userprog/"
+LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/ -I userprog/ -I fs/"
 CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
 ASMFLAGS = "-f elf"
 LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
@@ -31,6 +31,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/console.o device/console.c
 #{CC} #{CFLAGS} -o build/ioqueue.o device/ioqueue.c
 #{CC} #{CFLAGS} -o build/ide.o device/ide.c
+#{CC} #{CFLAGS} -o build/fs.o fs/fs.c
 #{CC} #{CFLAGS} -o build/keyboard.o device/keyboard.c
 #{CC} #{CFLAGS} -o build/tss.o userprog/tss.c
 #{CC} #{CFLAGS} -o build/process.o userprog/process.c
