@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "global.h"
 #include "list.h"
+#include "ide.h"
 /*
 本inode只支持一级间接索引块
 块大小设置为一个扇区大小，即512字节
@@ -19,5 +20,10 @@ struct inode {
     uint32_t i_sectors[13]; // 0-11是直接块，12是一级间接索引块
     struct list_elem inode_tag;
 };
+
+struct inode *inode_open(struct partition *part, uint32_t inode_no);
+void inode_sync(struct partition *part, struct inode *inode, void *io_buf);
+void inode_init(uint32_t inode_no, struct inode *new_inode);
+void inode_close(struct inode *inode);
 
 #endif

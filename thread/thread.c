@@ -84,6 +84,16 @@ void init_thread(struct task_struct *pthread, char *name, int prio) {
     pthread->elapsed_ticks = 0;
     // 线程没有页表，而是共享进程的页表，所以为NULL
     pthread->pgdir = NULL;
+    // 初始化文件描述符表
+    pthread->fd_table[0] = 0; // 标准输入
+    pthread->fd_table[1] = 1; // 标准输出
+    pthread->fd_table[2] = 2; // 标准错误
+    uint8_t fd_idx = 3;
+    while (fd_idx < MAX_FILES_OPEN_PER_PROC) {
+        pthread->fd_table[fd_idx] = -1;
+        fd_idx++;
+    }
+
     pthread->stack_magic = 0x19920928; // 自定义魔数
 }
 

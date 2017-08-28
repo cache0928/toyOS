@@ -57,6 +57,8 @@ struct thread_stack {
     void *func_arg;
 };
 
+// 每个进程同时打开的最多文件数
+#define MAX_FILES_OPEN_PER_PROC 8
 // PCB结构
 struct task_struct {
     uint32_t *self_kstack; // 各线程自己的内核栈栈顶
@@ -66,6 +68,7 @@ struct task_struct {
     char name[16];
     uint8_t ticks; // 每次在处理器上执行的时钟周期
     uint32_t elapsed_ticks; // 任务已经执行了多少个时钟周期
+    uint32_t fd_table[MAX_FILES_OPEN_PER_PROC]; // 文件描述符数组
     // 在就绪队列中的节点标记
     struct list_elem general_tag;
     // 在所有队列中的节点tag

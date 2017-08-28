@@ -19,6 +19,7 @@ struct partition {
     struct bitmap block_bitmap;
     // inode位图
     struct bitmap inode_bitmap;
+    // 该分区中已经加载到内存中的inode组成的队列
     struct list open_inodes;
 
 };

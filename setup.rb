@@ -32,6 +32,9 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/ioqueue.o device/ioqueue.c
 #{CC} #{CFLAGS} -o build/ide.o device/ide.c
 #{CC} #{CFLAGS} -o build/fs.o fs/fs.c
+#{CC} #{CFLAGS} -o build/inode.o fs/inode.c
+#{CC} #{CFLAGS} -o build/file.o fs/file.c
+#{CC} #{CFLAGS} -o build/dir.o fs/dir.c
 #{CC} #{CFLAGS} -o build/keyboard.o device/keyboard.c
 #{CC} #{CFLAGS} -o build/tss.o userprog/tss.c
 #{CC} #{CFLAGS} -o build/process.o userprog/process.c
