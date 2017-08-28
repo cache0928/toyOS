@@ -230,7 +230,7 @@ int32_t sys_open(const char *pathname, uint8_t flag) {
 
     if (searched_record.file_type == FT_DIRECTORY) {
         // 找到的是目录
-        printk("can`t open a direcotry with open(), use opendir() to instead\n");
+        printk("can't open a direcotry with open(), use opendir() to instead\n");
         dir_close(searched_record.parent_dir);
         return -1;
     }
@@ -247,7 +247,7 @@ int32_t sys_open(const char *pathname, uint8_t flag) {
     // 所有路径都访问到了
     if (!found && !(flag & O_CREATE)) {
         // 没有这个文件，且标记中没有给出创建
-        printk("in path %s, file %s is`t exist\n", searched_record.searched_path, (strrchr(searched_record.searched_path, '/') + 1));
+        printk("in path %s, file %s isn't exist\n", searched_record.searched_path, (strrchr(searched_record.searched_path, '/') + 1));
         dir_close(searched_record.parent_dir);
         return -1;
     } else if (found && (flag & O_CREATE)) {
@@ -263,11 +263,31 @@ int32_t sys_open(const char *pathname, uint8_t flag) {
             printk("creating file\n");
             fd = file_create(searched_record.parent_dir, (strchr(pathname, '/') + 1), flag);
             dir_close(searched_record.parent_dir);
+            break;
+        default:
+            // 打开文件
+            fd = file_open(inode_no, flag);
     }
-
     return fd;
+}
 
+// 将文件描述符转化成对应的文件表下标
+static uint32_t fd_local2global(uint32_t local_fd) {
+    struct task_struct *cur = running_thread();
+    int32_t global_fd = cur->fd_table[local_fd];
+    ASSERT(global_fd >= 0 && global_fd < MAX_FILE_OPEN);
+    return (uint32_t)global_fd;
+}
 
+// 关闭文件描述符fd对应的文件，成功返回0，失败返回-1
+int32_t sys_close(int32_t fd) {
+    int32_t ret = -1;
+    if (fd > 2) {
+        uint32_t gfd = fd_local2global(fd);
+        ret = file_close(&file_table[gfd]);
+        running_thread()->fd_table[fd] = -1;
+    }
+    return ret;
 }
 
 struct partition *cur_part; // 当前挂载的分区
@@ -341,7 +361,7 @@ void filesys_init() {
                 if (part->sec_cnt != 0) {
                     // 分区有效, 读入超级块
                     memset(sb_buf, 0, SECTOR_SIZE);
-                    ide_read(hd, part->start_lba+1, sb_buf, 1);
+                    ide_read(hd, part->start_lba + 1, sb_buf, 1);
                     if (sb_buf->magic == 0x19920324) {
                         // 只支持自己的文件系统
                         printk("%s has filesystem\n", part->name);

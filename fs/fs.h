@@ -19,7 +19,7 @@ enum oflags {
     O_RDONLY, // 只读
     O_WRONLY, // 只写
     O_RDWR, // 读写
-    O_CREATE // 创建
+    O_CREATE = 4// 创建
 };
 struct dir;
 // 文件查找记录
@@ -32,4 +32,5 @@ struct path_search_record {
 void filesys_init();
 int32_t path_depth_cnt(char *pathname);
 int32_t sys_open(const char *pathname, uint8_t flag);
+int32_t sys_close(int32_t fd);
 #endif

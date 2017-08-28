@@ -177,3 +177,46 @@ rollback:
     sys_free(io_buf);
     return -1;
 }
+
+// 打开文件，成功返回文件描述符，失败返回-1
+int32_t file_open(uint32_t inode_no, uint8_t flag) {
+    // 全局文件表找空位
+    int fd_idx = get_free_slot_in_global();
+    if (fd_idx == -1) {
+        printk("exceed max open files\n");
+        return -1;
+    }
+    // 填写空位
+    file_table[fd_idx].fd_inode = inode_open(cur_part, inode_no);
+    file_table[fd_idx].fd_pos = 0;
+    file_table[fd_idx].fd_flag = flag;
+
+    bool *write_deny = &file_table[fd_idx].fd_inode->write_deny;
+    if (flag & O_WRONLY || flag & O_RDWR) {
+        enum intr_status old_status = intr_disable();
+        if (!(*write_deny)) {
+            // 当前没有其他进程写该文件
+            *write_deny = true;
+            intr_set_status(old_status);
+        } else {
+            intr_set_status(old_status);
+            printk("file can't be write now, try again later\n");
+            memset(&file_table[fd_idx], 0, sizeof(struct file));
+            return -1;
+        }
+    }
+    return pcb_fd_install(fd_idx);
+}
+
+// 关闭文件
+int32_t file_close(struct file *file) {
+    if (file == NULL) {
+        return -1;
+    }
+    if (file->fd_inode->write_deny) {
+        file->fd_inode->write_deny = false;
+    }
+    inode_close(file->fd_inode);
+    file->fd_inode = NULL;
+    return 0;
+}
