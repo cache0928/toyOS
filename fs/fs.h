@@ -33,4 +33,5 @@ void filesys_init();
 int32_t path_depth_cnt(char *pathname);
 int32_t sys_open(const char *pathname, uint8_t flag);
 int32_t sys_close(int32_t fd);
+int32_t sys_write(int32_t fd, const void *buf, uint32_t count);
 #endif

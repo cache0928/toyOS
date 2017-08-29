@@ -24,8 +24,10 @@ int main(void) {
     // thread_start("k_thread_a", 31, k_thread_a, "I am thread_a");
     // thread_start("k_thread_b", 31, k_thread_b, "I am thread_b");
     // thread_block(TASK_BLOCKED);
+    
     int32_t fd = sys_open("/file1", O_RDWR);
     printf("fd:%d\n", fd);
+    sys_write(fd, "hello, world\n", 13);
     sys_close(fd);
     printf("%d closed now\n", fd);
     while(1);

@@ -4,6 +4,10 @@ puts "kernel build begin"
 if !Dir.exist?("build") then
     Dir.mkdir("build", 755)
 end
+# 部署环境
+BOCHS_DIR = "/Users/cache/Dropbox/Developer/bochs/"
+SYS_DISK = "hd60m.img"
+FS_DISK = "hd80m.img"
 # 编译链接
 CC = "clang"
 ASM = "nasm"
@@ -54,25 +58,24 @@ OBJS = "build/main.o " + (`ls build/`).split.find_all { |file|
 puts "compile & link successfully"
 
 # 写入到磁盘镜像中
-bochs_dir = "/Users/cache/Dropbox/Developer/bochs/"
-FileUtils.cp("build/mbr.bin", bochs_dir)
-FileUtils.cp("build/loader.bin", bochs_dir)
-FileUtils.cp("build/kernel.bin", bochs_dir)
+FileUtils.cp("build/mbr.bin", BOCHS_DIR)
+FileUtils.cp("build/loader.bin", BOCHS_DIR)
+FileUtils.cp("build/kernel.bin", BOCHS_DIR)
 `rm -rf build/*`
-Dir.chdir(bochs_dir)
+Dir.chdir(BOCHS_DIR)
 puts "write mbr"
 `
-dd if=mbr.bin of=hd60m.img bs=512 count=1 conv=notrunc
+dd if=mbr.bin of=#{SYS_DISK} bs=512 count=1 conv=notrunc
 `
 puts "write mbr done"
 puts "write bootloader"
 `
-dd if=loader.bin of=hd60m.img bs=512 count=4 seek=2 conv=notrunc
+dd if=loader.bin of=#{SYS_DISK} bs=512 count=4 seek=2 conv=notrunc
 `
 puts "write bootloader done"
 puts "write kernel"
 `
-dd if=kernel.bin of=hd60m.img bs=512 count=200 seek=9 conv=notrunc
+dd if=kernel.bin of=#{SYS_DISK} bs=512 count=200 seek=9 conv=notrunc
 `
 puts "write kernel done"
 FileUtils.cp("kernel.bin", "/Users/cache/Desktop/kernel.bin")

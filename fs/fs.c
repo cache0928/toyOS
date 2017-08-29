@@ -12,6 +12,7 @@
 #include "list.h"
 #include "dir.h"
 #include "file.h"
+#include "console.h"
 
 
 // 格式化，创建文件系统
@@ -288,6 +289,30 @@ int32_t sys_close(int32_t fd) {
         running_thread()->fd_table[fd] = -1;
     }
     return ret;
+}
+
+// 将buf中连续count字节的内容写入到文件描述符fd，成功返回字节数，失败返回-1
+int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
+    if (fd < 0) {
+        printk("sys_write: fd error\n");
+    }
+    if (fd == stdout_no) {
+        // 标准输出就是往控制台打印信息
+        char tmp_buf[1024] = {0};
+        memcpy(tmp_buf, buf, count);
+        console_put_str(tmp_buf);
+        return count;
+    }
+    uint32_t _fd = fd_local2global(fd);
+    struct file *file = &file_table[_fd];
+    if (file->fd_flag & O_WRONLY || file->fd_flag & O_RDWR) {
+        // 可写
+        uint32_t bytes_written = file_write(file, buf, count);
+        return bytes_written;
+    } else {
+        console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
+        return -1;
+    }
 }
 
 struct partition *cur_part; // 当前挂载的分区
