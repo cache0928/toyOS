@@ -9,6 +9,7 @@
 #include "stdio.h"
 #include "memory.h"
 #include "fs.h"
+#include "string.h"
 
 void k_thread_a(void*);
 void k_thread_b(void*);
@@ -19,6 +20,8 @@ int main(void) {
     put_str("I am kernel\n");
     init_all();
     intr_enable();
+    char *buf = sys_malloc(768);
+    memset(buf, 0, 1024);
     // process_execute(u_prog_a, "u_prog_a");
     // process_execute(u_prog_b, "u_prog_b");
     // thread_start("k_thread_a", 31, k_thread_a, "I am thread_a");
@@ -27,7 +30,8 @@ int main(void) {
     
     int32_t fd = sys_open("/file1", O_RDWR);
     printf("fd:%d\n", fd);
-    sys_write(fd, "hello, world\n", 13);
+    int read_bytes = sys_read(fd, buf, 768);
+    printf(" read %d bytes:\n", read_bytes);
     sys_close(fd);
     printf("%d closed now\n", fd);
     while(1);

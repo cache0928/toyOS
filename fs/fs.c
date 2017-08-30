@@ -315,6 +315,17 @@ int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
     }
 }
 
+// 从文件描述符fd指向的文件中读出count字节到buf，成功返回读出的字节数，失败返回-1
+int32_t sys_read(int32_t fd, void *buf, uint32_t count) {
+    if (fd < 0) {
+        printk("sys_read: fd error\n");
+        return -1;
+    }
+    ASSERT(buf != NULL);
+    uint32_t _fd = fd_local2global(fd);
+    return file_read(&file_table[_fd], buf, count);
+}
+
 struct partition *cur_part; // 当前挂载的分区
 // 挂载指定arg（对应char *，分区名）对应的分区， 用在分区队列 partition_list的遍历时
 static bool mount_partition(struct list_elem *part_elem, int arg) {
