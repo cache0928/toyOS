@@ -28,6 +28,7 @@ enum whence {
     SEEK_END
 };
 struct dir;
+struct dir_entry;
 // 文件查找记录
 struct path_search_record {
     char searched_path[MAX_PATH_LEN]; // 当前查找的文件
@@ -44,4 +45,8 @@ int32_t sys_read(int32_t fd, void *buf, uint32_t count);
 int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence);
 int32_t sys_unlink(const char *pathname);
 int32_t sys_mkdir(const char *pathname);
+int32_t sys_closedir(struct dir *dir);
+struct dir *sys_opendir(const char *name);
+struct dir_entry *sys_readdir(struct dir *dir);
+void sys_rewinddir(struct dir *dir);
 #endif

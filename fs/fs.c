@@ -110,7 +110,7 @@ static void partition_format(struct partition *part) {
     p_de->f_type = FT_DIRECTORY;
     p_de++;
     // 根目录的父目录是其本身
-    memcpy(p_de->filename, "..", 1);
+    memcpy(p_de->filename, "..", 2);
     p_de->i_no = 0;
     p_de->f_type = FT_DIRECTORY;
     ide_write(hd, sb.data_start_lba, buf, 1);
@@ -504,6 +504,52 @@ rollback:
     }
     sys_free(io_buf);
     return -1;
+}
+
+// 打开目录，成功返回dir指针
+struct dir *sys_opendir(const char *name) {
+    ASSERT(strlen(name) < MAX_PATH_LEN);
+    if (!strcmp(name, "/") || !strcmp(name, "/.") || !strcmp(name, "/..")) {
+        // 返回根目录
+        return &root_dir;
+    }
+    struct path_search_record searched_record;
+    memset(&searched_record, 0, sizeof(struct path_search_record));
+    int inode_no = search_file(name, &searched_record);
+    struct dir *ret = NULL;
+    if (inode_no == -1) {
+        // 目录不存在
+        printk("In %s, sub path %s not exist\n", name, searched_record.searched_path);
+    } else {
+        if (searched_record.file_type == FT_REGULAR) {
+            printk("%s is regular file!\n", name);
+        } else if (searched_record.file_type == FT_DIRECTORY) {
+            ret = dir_open(cur_part, inode_no);
+        }
+    }
+    dir_close(searched_record.parent_dir);
+    return ret;
+}
+
+// 关闭目录，成功返回0，失败返回-1
+int32_t sys_closedir(struct dir *dir) {
+    int32_t ret = -1;
+    if (dir != NULL) {
+        dir_close(dir);
+        ret = 0;
+    }
+    return ret;
+}
+
+// 读取目录的一个目录项，成功返回目录项指针
+struct dir_entry *sys_readdir(struct dir *dir) {
+    ASSERT(dir != NULL);
+    return dir_read(dir);
+}
+
+// 重置目录的dir_pos指针
+void sys_rewinddir(struct dir *dir) {
+    dir->dir_pos = 0;
 }
 
 struct partition *cur_part; // 当前挂载的分区
