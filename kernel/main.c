@@ -12,18 +12,26 @@
 #include "string.h"
 #include "dir.h"
 
-void k_thread_a(void*);
-void k_thread_b(void*);
-void u_prog_a(void);
-void u_prog_b(void);
+void dir_list(struct dir *p_dir);
 
 int main(void) {
     put_str("I am kernel\n");
     init_all();
     intr_enable();
     struct dir *p_dir = sys_opendir("/..");
+    dir_list(p_dir);
+    sys_mkdir("/dir1");
+    dir_list(p_dir);
+    sys_rmdir("/dir1");
+    dir_list(p_dir);
+    dir_close(p_dir);
+    while(1);
+    return 0;
+}
+
+void dir_list(struct dir *p_dir) {
     if (p_dir) {
-        printk("/dir1/subdir1 open done!\ncontent:\n");
+        printk("content:\n");
         char* type = NULL;
         struct dir_entry* dir_e = NULL;
         while ((dir_e = sys_readdir(p_dir))) {
@@ -34,14 +42,6 @@ int main(void) {
             }
             printk(" %s %s\n", type, dir_e->filename);
         }
-        if (sys_closedir(p_dir) == 0) { 
-            printk("/dir1/subdir1 close done!\n"); 
-        } else { 
-            printk("/dir1/subdir1 close fail!\n"); 
-        }
-    } else {
-        printk("/dir1/subdir1 open fail!\n");
+        sys_rewinddir(p_dir);
     }
-    while(1);
-    return 0;
 }

@@ -29,4 +29,6 @@ bool delete_dir_entry(struct partition *part, struct dir *pdir, uint32_t inode_n
 struct dir *sys_opendir(const char *name);
 int32_t sys_closedir(struct dir *dir);
 struct dir_entry *dir_read(struct dir *dir);
+int32_t dir_remove(struct dir *parent_dir, struct dir *child_dir);
+bool dir_is_empty(struct dir *dir);
 #endif

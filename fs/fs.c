@@ -552,6 +552,36 @@ void sys_rewinddir(struct dir *dir) {
     dir->dir_pos = 0;
 }
 
+// 删除目录，目录需为空
+int32_t sys_rmdir(const char *pathname) {
+    struct path_search_record searched_record;
+    memset(&searched_record, 0, sizeof(struct path_search_record)); 
+    int inode_no = search_file(pathname, &searched_record);
+    ASSERT(inode_no != 0);
+    int retval = -1;
+    if (inode_no == -1) {
+        // 目录不存在
+        printk("In %s, sub path %s not exist\n", pathname, searched_record.searched_path);
+    } else {
+        if (searched_record.file_type == FT_REGULAR) {
+            // 路径对应的是普通文件而不是目录
+            printk("%s is regular file!\n", pathname);
+        } else {
+            struct dir* dir = dir_open(cur_part, inode_no);
+            if (!dir_is_empty(dir)) {
+                printk("dir %s is not empty, it is not allowed to delete a nonempty directory!\n", pathname);
+            } else {
+                if (!dir_remove(searched_record.parent_dir, dir)) {
+                    retval = 0;
+                }
+            }
+            dir_close(dir);
+        }
+    }
+    dir_close(searched_record.parent_dir);
+    return retval;
+}
+
 struct partition *cur_part; // 当前挂载的分区
 // 挂载指定arg（对应char *，分区名）对应的分区， 用在分区队列 partition_list的遍历时
 static bool mount_partition(struct list_elem *part_elem, int arg) {
