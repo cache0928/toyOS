@@ -8,7 +8,7 @@
 #include "inode.h"
 
 struct file {
-    uint32_t fd_pos;
+    uint32_t fd_pos; // 文件操作的偏移指针
     uint32_t fd_flag;
     struct inode *fd_inode;
 };

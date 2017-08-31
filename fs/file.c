@@ -272,7 +272,7 @@ int32_t file_write(struct file *file, const void *buf, uint32_t count) {
     } else {
         file_has_used_blocks = file->fd_inode->i_size / BLOCK_SIZE + 1;
     }
-    printk("file_has_used_blocks: %d\n", file_has_used_blocks);
+    // printk("file_has_used_blocks: %d\n", file_has_used_blocks);
     // 写入数据后，该文件将占用的块数
     uint32_t file_will_use_blocks;
     if ((file->fd_inode->i_size + count) % BLOCK_SIZE == 0 && (file->fd_inode->i_size + count) > 0) {
@@ -280,7 +280,7 @@ int32_t file_write(struct file *file, const void *buf, uint32_t count) {
     } else {
         file_will_use_blocks = (file->fd_inode->i_size + count) / BLOCK_SIZE + 1;
     }
-    printk("file_will_use_blocks: %d\n", file_will_use_blocks);
+    // printk("file_will_use_blocks: %d\n", file_will_use_blocks);
     ASSERT(file_will_use_blocks <= 140);
     // 写入前后的块数差值，判断是否要申请新扇区
     uint32_t add_blocks = file_will_use_blocks - file_has_used_blocks;
@@ -401,7 +401,7 @@ int32_t file_write(struct file *file, const void *buf, uint32_t count) {
         }
         memcpy(io_buf + sec_off_bytes, src, chunk_size);
         ide_write(cur_part->my_disk, sec_lba, io_buf, 1);
-        printk("file write at lba 0x%x\n", sec_lba);
+        // printk("file write at lba 0x%x\n", sec_lba);
         src += chunk_size;
         // 更新文件大小
         file->fd_inode->i_size += chunk_size;

@@ -21,6 +21,12 @@ enum oflags {
     O_RDWR, // 读写
     O_CREATE = 4// 创建
 };
+// 文件操作偏移指针的参考量
+enum whence {
+    SEEK_SET = 1,
+    SEEK_CUR,
+    SEEK_END
+};
 struct dir;
 // 文件查找记录
 struct path_search_record {
@@ -35,4 +41,6 @@ int32_t sys_open(const char *pathname, uint8_t flag);
 int32_t sys_close(int32_t fd);
 int32_t sys_write(int32_t fd, const void *buf, uint32_t count);
 int32_t sys_read(int32_t fd, void *buf, uint32_t count);
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence);
+int32_t sys_unlink(const char *pathname);
 #endif
