@@ -19,11 +19,12 @@ int main(void) {
     init_all();
     intr_enable();
     struct dir *p_dir = sys_opendir("/..");
-    dir_list(p_dir);
-    sys_mkdir("/dir1");
-    dir_list(p_dir);
-    sys_rmdir("/dir1");
-    dir_list(p_dir);
+    char buf[32] = {0};
+    sys_getcwd(buf, 32);
+    printk("cwd:%s\n", buf);
+    sys_chdir("/dir1");
+    sys_getcwd(buf, 32);
+    printk("cwd:%s\n", buf);
     dir_close(p_dir);
     while(1);
     return 0;

@@ -582,6 +582,124 @@ int32_t sys_rmdir(const char *pathname) {
     return retval;
 }
 
+// 获取父目录的inode序号
+static uint32_t get_parent_dir_inode_nr(uint32_t child_inode_nr, void *io_buf) {
+    struct inode *child_dir_inode = inode_open(cur_part, child_inode_nr);
+    // ..项在目录数据块的第0块的第1项
+    uint32_t block_lba = child_dir_inode->i_sectors[0];
+    ASSERT(block_lba >= cur_part->sb->data_start_lba);
+    inode_close(child_dir_inode);
+    // 读入第0块
+    ide_read(cur_part->my_disk, block_lba, io_buf, 1);
+    struct dir_entry *dir_e = (struct dir_entry *)io_buf;
+    ASSERT(dir_e[1].i_no < 4096 && dir_e[1].f_type == FT_DIRECTORY);
+    return dir_e[1].i_no;
+}
+
+// 在inode编号为p_inode的目录中查找编号为c_inode_nr的字目录名称，结果放入path
+static int get_child_dir_name(uint32_t p_inode_nr, uint32_t c_inode_nr, char *path, void *io_buf) {
+    struct inode *parent_dir_inode = inode_open(cur_part, p_inode_nr);
+    uint8_t block_idx = 0;
+    uint32_t all_blocks[140] = {0};
+    uint32_t block_cnt = 12;
+    // 填充目录对应所有的数据块扇区地址到all_blocks
+    while (block_idx < 12) {
+        // 直接块
+        all_blocks[block_idx] = parent_dir_inode->i_sectors[block_idx];
+        block_idx++;
+    }
+    if (parent_dir_inode->i_sectors[12] != 0) {
+        // 间接块
+        ide_read(cur_part->my_disk, parent_dir_inode->i_sectors[12], all_blocks + 12, 1);
+        block_cnt = 140;
+    }
+    inode_close(parent_dir_inode);
+    // 遍历所有块，寻找对应c_inode_nr的目录项
+    struct dir_entry *dir_e = (struct dir_entry*)io_buf; 
+    uint32_t dir_entry_size = cur_part->sb->dir_entry_size; 
+    uint32_t dir_entrys_per_sec = (512 / dir_entry_size);
+    block_idx = 0;
+    while (block_idx < block_cnt) {
+        if (all_blocks[block_idx]) {
+            ide_read(cur_part->my_disk, all_blocks[block_idx], io_buf, 1);
+            uint8_t dir_e_idx = 0;
+            // 遍历块中的目录项
+            while (dir_e_idx < dir_entrys_per_sec) {
+                if ((dir_e_idx + dir_e)->i_no == c_inode_nr) {
+                    strcat(path, "/");
+                    strcat(path, (dir_e + dir_e_idx)->filename);
+                    return 0;
+                }
+                dir_e_idx++;
+            }
+        }
+        block_idx++;
+    }
+    return -1;
+}
+
+// 将当前工作目录的绝对路径写入buf，size是buf的大小
+char *sys_getcwd(char *buf, uint32_t size) {
+    ASSERT(buf != NULL);
+    void *io_buf = sys_malloc(SECTOR_SIZE);
+    if (io_buf == NULL) {
+        return NULL;
+    }
+
+    struct task_struct *cur_thread = running_thread();
+    int32_t parent_inode_nr = 0;
+    int32_t child_inode_nr = cur_thread->cwd_inode_nr;
+    ASSERT(child_inode_nr >= 0 && child_inode_nr < 4096);
+    if (child_inode_nr == 0) {
+        // 如果是根目录直接返回/
+        buf[0] = '/';
+        buf[1] = 0;
+        return buf;
+    }
+    memset(buf, 0, size);
+    char full_path_r[MAX_PATH_LEN] = {0}; // 最终获取的路径的倒置
+    
+    // 从当前线程的cwd_inode_nr开始逐级往上查找目录名并拼接，直到根目录
+    while (child_inode_nr) {
+        parent_inode_nr = get_parent_dir_inode_nr(child_inode_nr, io_buf);
+        if (get_child_dir_name(parent_inode_nr, child_inode_nr, full_path_r, io_buf) == -1) {
+            // 找不到名字，失败
+            sys_free(io_buf);
+            return NULL;
+        }
+        child_inode_nr = parent_inode_nr;
+    }
+
+    // 已经获取到最终路径的倒置，开始调整
+    ASSERT(strlen(full_path_r) <= size);
+    char *last_slash; // 最后一个／的位置
+    while ((last_slash = strrchr(full_path_r, '/'))) {
+        uint16_t len = strlen(buf);
+        strcpy(buf + len, last_slash);
+        *last_slash = 0;
+    }
+    sys_free(io_buf);
+    return buf;
+}
+
+// 改变当前线程的工作目录为path，成功返回0，失败返回-1
+int32_t sys_chdir(const char *path) {
+    int32_t ret = -1;
+    struct path_search_record searched_record;
+    memset(&searched_record, 0, sizeof(struct path_search_record));
+    int inode_no = search_file(path, &searched_record);
+    if (inode_no != -1) {
+        if (searched_record.file_type == FT_DIRECTORY) {
+            running_thread()->cwd_inode_nr = inode_no;
+            ret = 0;
+        } else {
+            printk("sys_chdir: %s is regular file or other!\n", path);
+        }
+    }
+    dir_close(searched_record.parent_dir);
+    return ret;
+}
+
 struct partition *cur_part; // 当前挂载的分区
 // 挂载指定arg（对应char *，分区名）对应的分区， 用在分区队列 partition_list的遍历时
 static bool mount_partition(struct list_elem *part_elem, int arg) {
