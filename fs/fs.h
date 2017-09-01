@@ -27,6 +27,12 @@ enum whence {
     SEEK_CUR,
     SEEK_END
 };
+// 文件属性结构体
+struct stat {
+    uint32_t st_ino;
+    uint32_t st_size;
+    enum file_types st_filetype;
+};
 struct dir;
 struct dir_entry;
 // 文件查找记录
@@ -52,4 +58,5 @@ void sys_rewinddir(struct dir *dir);
 int32_t sys_rmdir(const char *pathname);
 char *sys_getcwd(char *buf, uint32_t size);
 int32_t sys_chdir(const char *path);
+int32_t sys_stat(const char *path, struct stat *buf);
 #endif

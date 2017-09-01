@@ -18,14 +18,11 @@ int main(void) {
     put_str("I am kernel\n");
     init_all();
     intr_enable();
-    struct dir *p_dir = sys_opendir("/..");
-    char buf[32] = {0};
-    sys_getcwd(buf, 32);
-    printk("cwd:%s\n", buf);
-    sys_chdir("/dir1");
-    sys_getcwd(buf, 32);
-    printk("cwd:%s\n", buf);
-    dir_close(p_dir);
+    struct stat obj_stat; 
+    sys_stat("/", &obj_stat); 
+    printk("/'s info\n i_no:%d\n size:%d\n filetype:%s\n", obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
+    sys_stat("/dir1", &obj_stat); 
+    printk("/dir1's info\n i_no:%d\n size:%d\n filetype:%s\n", obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
     while(1);
     return 0;
 }
