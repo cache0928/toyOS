@@ -43,3 +43,7 @@ void *malloc(uint32_t size) {
 void free(void *vaddr) {
     _syscall1(SYS_FREE, vaddr);
 }
+
+pid_t fork() {
+    return _syscall0(SYS_FORK);
+}

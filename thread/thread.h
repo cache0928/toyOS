@@ -78,6 +78,7 @@ struct task_struct {
     struct virtual_addr userprog_vaddr; // 用户进程的虚拟内存池
     struct mem_block_desc u_blcok_desc[DESC_CNT]; // 用户进程的内存块描述符
     uint32_t cwd_inode_nr; // 进程当前所在的工作目录的inode号
+    int16_t parent_pid; // 父进程pid
     uint32_t stack_magic; // 栈的边界标记，用于判断栈是否溢出，魔数
 };
 struct task_struct *thread_start(char *name, int prio, thread_func function, void *func_arg);
@@ -89,6 +90,7 @@ void thread_yield();
 void thread_unblock(struct task_struct *pthread);
 void thread_create(struct task_struct *pthread, thread_func function, void *func_arg);
 void init_thread(struct task_struct *pthread, char *name, int prio);
+pid_t fork_pid(void);
 extern struct list thread_ready_list; // 就绪队列
 extern struct list thread_all_list; // 所有任务队列
 #endif

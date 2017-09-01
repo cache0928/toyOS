@@ -7,6 +7,7 @@
 #include "global.h"
 #include "sync.h"
 #include "interrupt.h"
+#include "stdio-kernel.h"
 
 
 // 获取虚拟地址的目录表索引
@@ -207,6 +208,20 @@ void *get_a_page(enum pool_flags pf, uint32_t vaddr) {
         return NULL;
     }
     page_table_add((void *)vaddr, page_phyaddr);
+    lock_release(&mem_pool->lock);
+    return (void *)vaddr;
+}
+
+// 根据提供的虚拟地址申请一页，但是不改变位图，专门用于fork时的用户虚拟池复制
+void *get_a_page_without_opvaddrbitmap(enum pool_flags pf, uint32_t vaddr) {
+    struct pool *mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
+    lock_acquire(&mem_pool->lock);
+    void *page_phyaddr = palloc(mem_pool);
+    if (page_phyaddr == NULL) {
+        lock_release(&mem_pool->lock);
+        return NULL;
+    }
+    page_table_add((void *)vaddr, page_phyaddr); 
     lock_release(&mem_pool->lock);
     return (void *)vaddr;
 }

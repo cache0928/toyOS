@@ -17,6 +17,7 @@ struct list thread_all_list; // 所有任务队列
 static struct list_elem *thread_tag;
 
 extern void switch_to(struct task_struct *cur, struct task_struct *next);
+extern void init();
 
 struct task_struct *idle_thread; // 空载线程
 
@@ -151,9 +152,14 @@ void thread_init() {
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
     lock_init(&pid_lock);
+    process_execute(init, "init");
     make_main_thread();
     idle_thread = thread_start("idle", 10, idle, NULL);
     put_str("thread_init_done\n");
+}
+
+pid_t fork_pid(void) {
+    return allocate_pid();
 }
 
 // 主动让出CPU，与阻塞不同的地方在于当前线程的状态是READY，而不是BLOCK

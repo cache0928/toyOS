@@ -7,6 +7,7 @@
 #include "syscall-init.h"
 #include "syscall.h"
 #include "stdio-kernel.h"
+#include "stdio.h"
 #include "memory.h"
 #include "fs.h"
 #include "string.h"
@@ -18,11 +19,7 @@ int main(void) {
     put_str("I am kernel\n");
     init_all();
     intr_enable();
-    struct stat obj_stat; 
-    sys_stat("/", &obj_stat); 
-    printk("/'s info\n i_no:%d\n size:%d\n filetype:%s\n", obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
-    sys_stat("/dir1", &obj_stat); 
-    printk("/dir1's info\n i_no:%d\n size:%d\n filetype:%s\n", obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
+    
     while(1);
     return 0;
 }
@@ -42,4 +39,28 @@ void dir_list(struct dir *p_dir) {
         }
         sys_rewinddir(p_dir);
     }
+}
+
+// init进程
+void init() {
+    // void *addr = malloc(256);
+    uint32_t ret_pid = fork();
+    if(ret_pid) {
+        printf("i am father, my pid is %d, child pid is %d\n", getpid(), ret_pid);
+        // free(addr);
+    } else {
+        printf("i am child, my pid is %d, ret pid is %d\n", getpid(), ret_pid);
+        // free(addr);
+    }
+    void *addr1 = malloc(256);
+    void *addr2 = malloc(512);
+    void *addr3 = malloc(1);
+    void *addr4 = malloc(128);
+    void *addr5 = malloc(1024);
+    free(addr1);
+    free(addr2);
+    free(addr3);
+    free(addr4);
+    free(addr5);
+    while(1);
 }
