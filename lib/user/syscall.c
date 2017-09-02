@@ -32,8 +32,12 @@ uint32_t getpid() {
     return _syscall0(SYS_GETPID);
 }
 
-uint32_t write(int32_t fd, const void *buf, uint32_t count) {
+int32_t write(int32_t fd, const void *buf, uint32_t count) {
     return _syscall3(SYS_WRITE, fd, buf, count);
+}
+
+int32_t read(int32_t fd, void* buf, uint32_t count) { 
+    return _syscall3(SYS_READ, fd, buf, count); 
 }
 
 void *malloc(uint32_t size) {
@@ -46,4 +50,12 @@ void free(void *vaddr) {
 
 pid_t fork() {
     return _syscall0(SYS_FORK);
+}
+
+void putchar (char char_ascii) {
+    _syscall1(SYS_PUTCHAR, char_ascii);
+}
+
+void clear() {
+    _syscall0(SYS_CLEAR);
 }

@@ -103,7 +103,7 @@ static char keymap[][2] = {
 /*其它按键暂不处理*/
 };
 
-static struct ioqueue kbd_buf;
+struct ioqueue kbd_buf;
 
 static void intr_keyboard_handler() {
     // 上一次中断发生时，以下3个键的状态
@@ -161,7 +161,7 @@ static void intr_keyboard_handler() {
         // 只打印拥有对应ASCII的按键
         if (cur_char) {
             if (!ioq_full(&kbd_buf)) {
-                put_char(cur_char);
+                // put_char(cur_char);
                 ioq_putchar(&kbd_buf, cur_char);
             }
             return;

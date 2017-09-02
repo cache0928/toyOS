@@ -12,55 +12,27 @@
 #include "fs.h"
 #include "string.h"
 #include "dir.h"
-
-void dir_list(struct dir *p_dir);
-
-int main(void) {
+#include "shell.h"
+extern void cls_screen();
+int main() {
     put_str("I am kernel\n");
     init_all();
+    cls_screen();
+    console_put_str("<toyOS:/ cache> $ ");
     intr_enable();
-    
     while(1);
     return 0;
 }
-
-void dir_list(struct dir *p_dir) {
-    if (p_dir) {
-        printk("content:\n");
-        char* type = NULL;
-        struct dir_entry* dir_e = NULL;
-        while ((dir_e = sys_readdir(p_dir))) {
-            if (dir_e->f_type == FT_REGULAR) {
-                type = "regular";
-            } else {
-                type = "directory";
-            }
-            printk(" %s %s\n", type, dir_e->filename);
-        }
-        sys_rewinddir(p_dir);
-    }
-}
-
 // init进程
 void init() {
     // void *addr = malloc(256);
     uint32_t ret_pid = fork();
     if(ret_pid) {
-        printf("i am father, my pid is %d, child pid is %d\n", getpid(), ret_pid);
-        // free(addr);
+        // 父进程
+        while(1);
     } else {
-        printf("i am child, my pid is %d, ret pid is %d\n", getpid(), ret_pid);
-        // free(addr);
+        // 子进程
+        my_shell();
     }
-    void *addr1 = malloc(256);
-    void *addr2 = malloc(512);
-    void *addr3 = malloc(1);
-    void *addr4 = malloc(128);
-    void *addr5 = malloc(1024);
-    free(addr1);
-    free(addr2);
-    free(addr3);
-    free(addr4);
-    free(addr5);
     while(1);
 }

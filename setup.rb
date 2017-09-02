@@ -12,7 +12,7 @@ FS_DISK = "hd80m.img"
 CC = "clang"
 ASM = "nasm"
 LD = "~/Dropbox/Developer/binutils/bin/i386-unknown-linux-gnu-ld"
-LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/ -I userprog/ -I fs/"
+LIB = "-I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/  -I thread/ -I userprog/ -I fs/ -I shell/"
 CFLAGS = "-target i386-apple-linux-elf #{LIB} -fno-builtin -c"
 ASMFLAGS = "-f elf"
 LDFLAGS = "-Ttext 0xc0001500 -e main -o build/kernel.bin"
@@ -45,6 +45,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/syscall.o lib/user/syscall.c
 #{CC} #{CFLAGS} -o build/fork.o userprog/fork.c
 #{CC} #{CFLAGS} -o build/stdio.o lib/stdio.c
+#{CC} #{CFLAGS} -o build/shell.o shell/shell.c
 #{CC} #{CFLAGS} -o build/syscall-init.o userprog/syscall-init.c
 #{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
 #{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s

@@ -25,7 +25,7 @@ struct task_struct *idle_thread; // 空载线程
 static void idle(void *arg) {
     while(1) {
         thread_block(TASK_BLOCKED);
-        asm volatile ("sti;hlt" : : : "memory");
+        asm volatile ("sti; hlt" : : : "memory");
     }
 }
 
