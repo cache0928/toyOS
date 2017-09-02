@@ -46,6 +46,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/fork.o userprog/fork.c
 #{CC} #{CFLAGS} -o build/stdio.o lib/stdio.c
 #{CC} #{CFLAGS} -o build/shell.o shell/shell.c
+#{CC} #{CFLAGS} -o build/buildin_cmd.o shell/buildin_cmd.c
 #{CC} #{CFLAGS} -o build/syscall-init.o userprog/syscall-init.c
 #{ASM} #{ASMFLAGS} -o build/print.o lib/kernel/print.s
 #{ASM} #{ASMFLAGS} -o build/kernel.o kernel/kernel.s

@@ -59,4 +59,5 @@ int32_t sys_rmdir(const char *pathname);
 char *sys_getcwd(char *buf, uint32_t size);
 int32_t sys_chdir(const char *path);
 int32_t sys_stat(const char *path, struct stat *buf);
+char *path_parse(char *pathname, char *name_store);
 #endif

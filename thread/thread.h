@@ -93,4 +93,6 @@ void init_thread(struct task_struct *pthread, char *name, int prio);
 pid_t fork_pid(void);
 extern struct list thread_ready_list; // 就绪队列
 extern struct list thread_all_list; // 所有任务队列
+
+void sys_ps();
 #endif

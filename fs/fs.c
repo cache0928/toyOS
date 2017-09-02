@@ -122,7 +122,7 @@ static void partition_format(struct partition *part) {
 }
 
 // 解析出最上层的路径名，存入到name_store中，返回剩下的路径名指针
-static char *path_parse(char *pathname, char *name_store) {
+char *path_parse(char *pathname, char *name_store) {
     if (pathname[0] == '/') {
         while (*(++pathname) == '/'); // 跨过开头的多个/
     }
