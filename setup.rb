@@ -43,6 +43,7 @@ puts "begin compile & link"
 #{CC} #{CFLAGS} -o build/tss.o userprog/tss.c
 #{CC} #{CFLAGS} -o build/process.o userprog/process.c
 #{CC} #{CFLAGS} -o build/syscall.o lib/user/syscall.c
+#{CC} #{CFLAGS} -o build/assert.o lib/user/assert.c
 #{CC} #{CFLAGS} -o build/fork.o userprog/fork.c
 #{CC} #{CFLAGS} -o build/stdio.o lib/stdio.c
 #{CC} #{CFLAGS} -o build/shell.o shell/shell.c

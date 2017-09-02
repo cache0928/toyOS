@@ -19,6 +19,10 @@ int main() {
     init_all();
     cls_screen();
     console_put_str("<toyOS:/ cache> $ ");
+    // sys_chdir("/dir1");
+    // char name[10] = {0};
+    // sys_getcwd(name, 10);
+    // printk("current dir: %s\n", name);
     intr_enable();
     while(1);
     return 0;
