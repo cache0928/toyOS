@@ -57,6 +57,7 @@ struct thread_stack {
     void *func_arg;
 };
 
+#define TASK_NAME_LEN 16
 // 每个进程同时打开的最多文件数
 #define MAX_FILES_OPEN_PER_PROC 8
 // PCB结构

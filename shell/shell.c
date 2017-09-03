@@ -83,6 +83,7 @@ void my_shell() {
     cwd_cache[0] = '/';
     while (1) {
         print_prompt();
+        memset(final_path, 0, MAX_PATH_LEN);
         memset(cmd_line, 0, cmd_len);
         readline(cmd_line, cmd_len);
         if (cmd_line[0] == 0) {
@@ -115,7 +116,29 @@ void my_shell() {
         } else if (!strcmp("rm", argv[0])) {
             buildin_rm(argc, argv);
         } else {
-            printf("external command\n");
+            int32_t pid = fork();
+            if (pid) {
+                // 父进程
+                while(1);
+            } else {
+                // 子进程
+                make_clear_abs_path(argv[0], final_path);
+                argv[0] = final_path;
+                struct stat file_stat;
+                memset(&file_stat, 0, sizeof(struct stat));
+                if (stat(argv[0], &file_stat) == -1) {
+                    // 文件不存在
+                    printf("my_shell: cannot access %s: No such file or directory\n", argv[0]);
+                } else {
+                    execv(argv[0], argv);
+                }
+                while(1);
+            }
+        }
+        int32_t arg_idx = 0;
+        while (arg_idx < MAX_ARG_NR) {
+            argv[arg_idx] = NULL;
+            arg_idx++;
         }
     }
     // panic("my_shell: should not be here");
