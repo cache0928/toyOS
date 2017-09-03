@@ -84,3 +84,4 @@ dkms.conf
 .DS_Store
 /.vscode
 /build
+/command/prog_no_arg
