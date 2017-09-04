@@ -2,10 +2,13 @@
 #define __LIB_USER_SYSCALL_H
 
 #include "stdint.h"
-#include "thread.h"
-#include "fs.h"
-#include "dir.h"
-#include "file.h"
+// #include "thread.h"
+// #include "fs.h"
+// #include "dir.h"
+// #include "file.h"
+struct dir;
+struct dir_entry;
+struct stat;
 
 enum SYSCALL_NR {
     SYS_GETPID,
@@ -37,7 +40,7 @@ uint32_t getpid();
 uint32_t write(int32_t fd, const void *buf, uint32_t count);
 void *malloc(uint32_t size);
 void free(void *ptr);
-pid_t fork();
+uint16_t fork();
 int32_t read(int32_t fd, void *buf, uint32_t count);
 void putchar(char char_asci);
 void clear();

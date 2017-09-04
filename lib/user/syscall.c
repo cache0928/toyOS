@@ -49,7 +49,7 @@ void free(void *ptr) {
 }
 
 /* 派生子进程,返回子进程pid */
-pid_t fork(){
+uint16_t fork(){
     return _syscall0(SYS_FORK);
 }
 

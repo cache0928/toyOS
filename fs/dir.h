@@ -3,6 +3,7 @@
 
 #include "inode.h"
 #include "fs.h"
+#include "global.h"
 #define MAX_FILE_NAME_LEN 16 // 最长文件名
 
 struct dir {

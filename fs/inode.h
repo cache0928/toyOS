@@ -5,6 +5,7 @@
 #include "global.h"
 #include "list.h"
 #include "ide.h"
+
 /*
 本inode只支持一级间接索引块
 块大小设置为一个扇区大小，即512字节
@@ -16,6 +17,7 @@ struct inode {
     uint32_t i_no; // inode编号
     uint32_t i_size; // 文件大小，若是目录则表示目录下的所有目录项大小
     uint32_t i_open_cnts; // 文件被打开的次数
+    
     bool write_deny; // 文件是否正在被写入
     uint32_t i_sectors[13]; // 0-11是直接块，12是一级间接索引块
     struct list_elem inode_tag;

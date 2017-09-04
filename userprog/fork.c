@@ -27,9 +27,8 @@ static int32_t copy_pcb_vaddrbitmap_stack0(struct task_struct *child_thread, str
     if (vaddr_btmp == NULL) return -1;
     memcpy(vaddr_btmp, child_thread->userprog_vaddr.vaddr_bitmap.bits, bitmap_pg_cnt * PG_SIZE);
     child_thread->userprog_vaddr.vaddr_bitmap.bits = vaddr_btmp;
-    /* 调试用 */
-    ASSERT(strlen(child_thread->name) < 11);
-    strcat(child_thread->name,"_fork");
+    // ASSERT(strlen(child_thread->name) < 11);
+    // strcat(child_thread->name,"_fork");
     return 0;
 }
 
@@ -87,7 +86,7 @@ static int32_t build_child_stack(struct task_struct *child_thread) {
     uint32_t* ebp_ptr_in_thread_stack = (uint32_t*)intr_0_stack - 5; 
 
     *ret_addr_in_thread_stack = (uint32_t)intr_exit;
-
+    // 下面这些寄存器其实用不到，因为中断返回时的一系列pop会还原所有寄存器
     *ebp_ptr_in_thread_stack = *ebx_ptr_in_thread_stack = *edi_ptr_in_thread_stack = *esi_ptr_in_thread_stack = 0;
 
     child_thread->self_kstack = ebp_ptr_in_thread_stack;	    
