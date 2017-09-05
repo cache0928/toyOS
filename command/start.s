@@ -1,5 +1,6 @@
 [bits 32]
 extern main
+extern exit
 ; 这是一个简易版的CRT
 ; 如果链接时候ld不指定-e main的话，那ld默认会使用_start来充当入口
 ; 这里的_start的简陋实现，充当了exec调用的进程从伪造的中断中返回时的入口地址
@@ -11,3 +12,7 @@ _start:
     push ebx ;压入 argv 
     push ecx ;压入 argc 
     call main
+
+    ; 压入main的返回值
+    push eax
+    call exit ; 不再返回，直接调度别的进程了，这个进程直接被回收了

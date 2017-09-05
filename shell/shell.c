@@ -119,7 +119,9 @@ void my_shell() {
             int32_t pid = fork();
             if (pid) {
                 // 父进程
-                while(1);
+                int32_t status;
+                int32_t child_pid = wait(&status);
+                printf("child_pid %d, it's status: %d\n", child_pid, status);
             } else {
                 // 子进程
                 make_clear_abs_path(argv[0], final_path);
@@ -132,7 +134,6 @@ void my_shell() {
                 } else {
                     execv(argv[0], argv);
                 }
-                while(1);
             }
         }
         int32_t arg_idx = 0;

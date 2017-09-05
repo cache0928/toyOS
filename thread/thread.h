@@ -3,9 +3,11 @@
 #include "stdint.h"
 #include "list.h"
 #include "memory.h"
+
 // 线程函数的形参
 typedef void (*thread_func)(void *);
 typedef uint16_t pid_t;
+
 // 线程／进程的状态
 enum task_status {
     TASK_RUNNING,
@@ -80,6 +82,7 @@ struct task_struct {
     struct mem_block_desc u_blcok_desc[DESC_CNT]; // 用户进程的内存块描述符
     uint32_t cwd_inode_nr; // 进程当前所在的工作目录的inode号
     int16_t parent_pid; // 父进程pid
+    int8_t exit_status; // 进程退出时的状态码
     uint32_t stack_magic; // 栈的边界标记，用于判断栈是否溢出，魔数
 };
 struct task_struct *thread_start(char *name, int prio, thread_func function, void *func_arg);
