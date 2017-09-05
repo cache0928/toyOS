@@ -67,7 +67,27 @@ __进程exec__
 
 exec的实现，首先将elf文件从磁盘加载到内存，然后改变当前进程的PCB中的进程名，并把待执行进程所需的参数放入到约定的寄存器中，并将eip修改成elf的entry point，伪造中断现场，通过直接调用中断退出函数intr_exit来立即执行新进程。
 
-其中ELF的Entry Point是通过自己实现一个极其简陋的CRT来实现的，其中给出了一个_start入口，并push约定的参数寄存器到3级栈中，通过call来调用外部命令的main函数来实现参数传递，详见start.s
+其中ELF的Entry Point是通过自己实现一个极其简陋的CRT来实现的，其中给出了一个_start入口，并push约定的参数寄存器到3级栈中，通过call来调用外部命令的main函数来实现参数传递
+```asm
+[bits 32]
+extern main
+extern exit
+; 这是一个简易版的CRT
+; 如果链接时候ld不指定-e main的话，那ld默认会使用_start来充当入口
+; 这里的_start的简陋实现，充当了exec调用的进程从伪造的中断中返回时的入口地址
+; 通过这个_start, 压入了在execv中存放用户进程参数的两个寄存器。然后call 用户进程main来实现了向用户进程传递参数
+section .text 
+global _start 
+_start:
+;下面这两个要和 execv 中 load 之后指定的寄存器一致 
+    push ebx ;压入 argv 
+    push ecx ;压入 argc 
+    call main
+
+    ; 压入main的返回值
+    push eax
+    call exit ; 不再返回，直接调度别的进程了，这个进程直接被回收了
+```
 
 __进程wait__
 
