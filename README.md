@@ -1,9 +1,10 @@
 # toyOS
 一个玩具OS, 32bit
 
-思路和实现上参考了《操作系统真象还原》
+思路和实现上参考了[《操作系统真象还原》](http://www.epubit.com.cn/book/details/4222)，强烈推荐一下这本书
 
-最终目标是实现一个简易的可交互的Shell
+最终实现了一个简易的可交互的Shell
+![](./resource/shell.png)
 
 __TO-DO List：__
 
@@ -11,7 +12,7 @@ __TO-DO List：__
 - [x] 内核级线程
 - [x] 用户态进程
 - [x] 文件系统
-- [ ] 交互Shell
+- [x] 交互Shell
 
 ### 硬盘分区
 一共分主次两个硬盘，系统本身安装于主盘，采用的是MBR的引导模式，MBR->Boot Loader->Kernnel的过程
@@ -112,3 +113,56 @@ __文件描述符与inode的对应__
 * 文件类型，只包含文件夹和普通文件，并没有对普通文件进行细分
 * 文件的stat，只包含inode编号、文件大小和文件类型三个字段
 * 实现了文件操作的一些基本功能，如mkdir、pwd、cd等，详见fs.h
+
+### 管道
+管道的实现依赖于文件系统中的file结构体，本质就是将文件结构体原本应该对应的inode替换成内核空间中的一个环形缓冲区空间。
+```c
+// 因为管道也是当作文件来对待，因此file结构体在针对真实文件和管道是有不同的意义
+struct file {
+    // 文件操作的偏移指针, 当是管道是表示管道打开的次数
+    uint32_t fd_pos; 
+    // 文件的操作标志，当是管道是一个固定值0xFFFF
+    uint32_t fd_flag;
+    // 对应的inode指针，当是管道时指向管道的环形缓冲区
+    struct inode *fd_inode;
+};
+```
+因为内核空间是共享的，所以可以通过读写管道来实现不同进程间的通信。管道的读写封装在`sys_write`和`sys_read`中，因此操作管道和操作普通文件无区别
+
+重定向的本质就是改变pcb文件描述符表中对应的全局描述符表地址，之后读写对应的文件描述符的操作就被指向了新文件
+
+shell中的管道符|的实现，就是通过重定向标准输入和标准输出到管道来实现的
+```c
+int32_t sys_read(int32_t fd, void *buf, uint32_t count) {
+    if (fd == stdin_no) {
+        if (is_pipe(fd)) {
+            // 从已经重定向好管道中读
+            ret = pipe_read(fd, buf, count);
+        } else {
+            // 从键盘获取输入
+        }
+    } else if (is_pipe(fd)) {
+        // 读管道
+        ret = pipe_read(fd, buf, count);
+    } else {
+        // 读取普通文件
+    }
+    return ret;
+}
+
+int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
+    if (fd == stdout_no) {
+        if (is_pipe(fd)) {
+            // 向已经重定向好管道中写入
+            return pipe_write(fd, buf, count);
+        } else {
+            // 向控制台输出内容
+        }
+    } else if (is_pipe(fd)) {
+        // 写管道
+        return pipe_write(fd, buf, count);
+    } else {
+        // 向普通文件写入
+    }
+}
+```

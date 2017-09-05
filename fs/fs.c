@@ -308,11 +308,15 @@ int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
         printk("sys_write: fd error\n");
     }
     if (fd == stdout_no) {
-        // 标准输出就是往控制台打印信息
-        char tmp_buf[1024] = {0};
-        memcpy(tmp_buf, buf, count);
-        console_put_str(tmp_buf);
-        return count;
+        if (is_pipe(fd)) {
+            return pipe_write(fd, buf, count);
+        } else {
+            // 标准输出就是往控制台打印信息
+            char tmp_buf[1024] = {0};
+            memcpy(tmp_buf, buf, count);
+            console_put_str(tmp_buf);
+            return count;
+        }
     } else if (is_pipe(fd)) {
         return pipe_write(fd, buf, count);
     } else {
@@ -857,4 +861,17 @@ void filesys_init() {
     while (fd_idx < MAX_FILE_OPEN) {
         file_table[fd_idx++].fd_inode = NULL;
     }
+}
+
+void sys_help() {
+    printk("\
+  buildin commands:\n\
+        ls: show directory or file information\n\
+        cd: change current work directory\n\
+        mkdir: create a directory\n\
+        rmdir: remove a empty directory\n\
+        rm: remove a regular file\n\
+        pwd: show current work directory\n\
+        ps: show process information\n\
+        clear: clear screen\n\n");
 }

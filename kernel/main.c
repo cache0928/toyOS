@@ -20,9 +20,9 @@ int main() {
     put_str("I am kernel\n");
     init_all();
 // 写入用户进程cat
-    // uint32_t file_size = 5673; 
+    // uint32_t file_size = 5895; 
     // uint32_t sec_cnt = DIV_ROUND_UP(file_size, 512);
-    // struct disk* sda = &channels[0].devices[0];
+    // struct disk *sda = &channels[0].devices[0];
     // void* prog_buf = sys_malloc(file_size);
     // ide_read(sda, 300, prog_buf, sec_cnt);
     // int32_t fd = sys_open("/cat", O_CREATE | O_RDWR);
@@ -32,15 +32,6 @@ int main() {
     //         while(1);
     //     }
     // }
-    // sys_close(fd);
-// 写入一个测试文件
-    // uint32_t fd = sys_open("/file1", O_CREATE | O_RDWR);
-    // int i = 0;
-    // while (i++ < 3) {
-    //     sys_write(fd, "hello, world\n", 13);
-    // }
-    // sys_close(fd);
-    
     cls_screen();
     console_put_str("<toyOS:/ cache> $ ");
     intr_enable();

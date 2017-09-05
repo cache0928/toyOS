@@ -271,7 +271,7 @@ int32_t buildin_rmdir(uint32_t argc, char** argv) {
 }
  
  /* rm命令内建函数 */
- int32_t buildin_rm(uint32_t argc, char** argv) {
+int32_t buildin_rm(uint32_t argc, char** argv) {
     int32_t ret = -1;
     if (argc != 2) {
         printf("rm: only support 1 argument!\n");
@@ -288,4 +288,14 @@ int32_t buildin_rmdir(uint32_t argc, char** argv) {
         }
     }
     return ret;
- }
+}
+
+/* help命令内建函数 */
+void buildin_help(uint32_t argc, char** argv) {
+    if (argc != 1) {
+        printf("help: no argument support!\n");
+        return;
+    }
+    help();
+}
+

@@ -157,3 +157,13 @@ uint16_t wait(int32_t* status) {
 int32_t pipe(int32_t pipefd[2]) {
     return _syscall1(SYS_PIPE, pipefd);
 }
+
+/* 将文件描述符old_local_fd重定向到new_local_fd */
+void fd_redirect(uint32_t old_local_fd, uint32_t new_local_fd) {
+    _syscall2(SYS_FD_REDIRECT, old_local_fd, new_local_fd);
+}
+ 
+ /* 显示系统支持的命令 */
+void help() {
+    _syscall0(SYS_HELP);
+}

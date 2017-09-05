@@ -5,6 +5,22 @@
 #include "ioqueue.h"
 #include "thread.h"
 
+// 重定向，将ld_local_fd重定向为new_local_fd，就是修改pcb中文件描述符表对应下标的内容
+void sys_fd_redirect(uint32_t old_local_fd, uint32_t new_local_fd) {
+    struct task_struct* cur = running_thread();
+    if (new_local_fd < 3) {
+        // 仅用于将标准描述符恢复为标准描述符时
+        // 因为线程和进程刚初始化的时候，就已经默认将pcb文件描述符表中前3项分别赋值0，1，2对应全局文件表的前三项
+        // 而函数get_free_slot_in_global从全局文件表获取空闲位的时候也是跨过前三项的
+        // 所以按照原样恢复到线程／进程刚初始化时的样子即可达到目的
+        cur->fd_table[old_local_fd] = new_local_fd;
+    } else {
+        // 其余的重定向就是更换一下对应下标的值，从而达到指向全局文件表中不同文件的目的
+        uint32_t new_global_fd = cur->fd_table[new_local_fd];
+        cur->fd_table[old_local_fd] = new_global_fd;
+    }
+}
+
 // 判断文件描述符local_Fd是否为管道
 bool is_pipe(uint32_t local_fd) {
     uint32_t global_fd = fd_local2global(local_fd);
