@@ -14,6 +14,8 @@
 #include "file.h"
 #include "console.h"
 #include "keyboard.h"
+#include "ioqueue.h"
+#include "pipe.h"
 
 
 // 格式化，创建文件系统
@@ -274,7 +276,7 @@ int32_t sys_open(const char *pathname, uint8_t flag) {
 }
 
 // 将文件描述符转化成对应的文件表下标
-static uint32_t fd_local2global(uint32_t local_fd) {
+uint32_t fd_local2global(uint32_t local_fd) {
     struct task_struct *cur = running_thread();
     int32_t global_fd = cur->fd_table[local_fd];
     ASSERT(global_fd >= 0 && global_fd < MAX_FILE_OPEN);
@@ -286,7 +288,15 @@ int32_t sys_close(int32_t fd) {
     int32_t ret = -1;
     if (fd > 2) {
         uint32_t gfd = fd_local2global(fd);
-        ret = file_close(&file_table[gfd]);
+        if (is_pipe(fd)) {
+            if (--file_table[gfd].fd_pos == 0) {
+                // 回收管道
+                mfree_page(PF_KERNEL, file_table[gfd].fd_inode, 1);
+                file_table[gfd].fd_inode = NULL;
+            }
+        } else {
+            ret = file_close(&file_table[gfd]);            
+        }
         running_thread()->fd_table[fd] = -1;
     }
     return ret;
@@ -303,16 +313,19 @@ int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
         memcpy(tmp_buf, buf, count);
         console_put_str(tmp_buf);
         return count;
-    }
-    uint32_t _fd = fd_local2global(fd);
-    struct file *file = &file_table[_fd];
-    if (file->fd_flag & O_WRONLY || file->fd_flag & O_RDWR) {
-        // 可写
-        uint32_t bytes_written = file_write(file, buf, count);
-        return bytes_written;
+    } else if (is_pipe(fd)) {
+        return pipe_write(fd, buf, count);
     } else {
-        console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
-        return -1;
+        uint32_t _fd = fd_local2global(fd);
+        struct file *file = &file_table[_fd];
+        if (file->fd_flag & O_WRONLY || file->fd_flag & O_RDWR) {
+            // 可写
+            uint32_t bytes_written = file_write(file, buf, count);
+            return bytes_written;
+        } else {
+            console_put_str("sys_write: not allowed to write file without flag O_RDWR or O_WRONLY\n");
+            return -1;
+        }
     }
 }
 
@@ -323,14 +336,20 @@ int32_t sys_read(int32_t fd, void *buf, uint32_t count) {
     if (fd < 0 || fd == stdout_no || fd == stderr_no) {
         printk("sys_read: fd error\n");
     } else if (fd == stdin_no) {
-        char *buffer = buf;
-        uint32_t bytes_read = 0;
-        while (bytes_read < count) {
-            *buffer = ioq_getchar(&kbd_buf);
-            bytes_read++;
-            buffer++;
+        if (is_pipe(fd)) {
+            ret = pipe_read(fd, buf, count);
+        } else {
+            char *buffer = buf;
+            uint32_t bytes_read = 0;
+            while (bytes_read < count) {
+                *buffer = ioq_getchar(&kbd_buf);
+                bytes_read++;
+                buffer++;
+            }
+            ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
         }
-        ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
+    } else if (is_pipe(fd)) {
+        ret = pipe_read(fd, buf, count);
     } else {
         uint32_t _fd = fd_local2global(fd);
         ret = file_read(&file_table[_fd], buf, count);

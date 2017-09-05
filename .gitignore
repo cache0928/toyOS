@@ -87,3 +87,4 @@ dkms.conf
 /command/prog_no_arg
 /command/prog_arg
 /command/cat
+/command/prog_pipe

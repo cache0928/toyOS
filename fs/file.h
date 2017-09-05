@@ -7,9 +7,13 @@
 #include "global.h"
 #include "inode.h"
 
+// 因为管道也是当作文件来对待，因此file结构体在针对真实文件和管道是有不同的意义
 struct file {
-    uint32_t fd_pos; // 文件操作的偏移指针
+    // 文件操作的偏移指针, 当是管道是表示管道打开的次数
+    uint32_t fd_pos; 
+    // 文件的操作标志，当是管道是一个固定值0xFFFF
     uint32_t fd_flag;
+    // 对应的inode指针，当是管道时指向管道的环形缓冲区
     struct inode *fd_inode;
 };
 // 标准输入、输出、错误的描述符

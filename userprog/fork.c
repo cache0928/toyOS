@@ -100,7 +100,11 @@ static void update_inode_open_cnts(struct task_struct *thread) {
         global_fd = thread->fd_table[local_fd];
         ASSERT(global_fd < MAX_FILE_OPEN);
         if (global_fd != -1) {
-            file_table[global_fd].fd_inode->i_open_cnts++;
+            if (is_pipe(local_fd)) {
+                file_table[global_fd].fd_pos++;
+            } else {
+                file_table[global_fd].fd_inode->i_open_cnts++;                
+            }
         }
         local_fd++;
     }

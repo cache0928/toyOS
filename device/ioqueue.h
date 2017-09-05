@@ -4,7 +4,7 @@
 #include "thread.h"
 #include "sync.h"
 
-#define bufsize 64
+#define bufsize 2048
 
 struct ioqueue {
     // 争当消费者或者生产者的时候要加锁
@@ -21,5 +21,5 @@ void ioqueue_init(struct ioqueue *ioq);
 bool ioq_full(struct ioqueue *ioq);
 void ioq_putchar(struct ioqueue *ioq, char byte);
 char ioq_getchar(struct ioqueue *ioq);
-
+uint32_t ioq_length(struct ioqueue *ioq);
 #endif

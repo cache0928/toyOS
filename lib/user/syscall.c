@@ -152,3 +152,8 @@ void exit(int32_t status) {
 uint16_t wait(int32_t* status) {
     return _syscall1(SYS_WAIT, status);
 }
+
+/* 生成管道,pipefd[0]负责读入管道,pipefd[1]负责写入管道 */
+int32_t pipe(int32_t pipefd[2]) {
+    return _syscall1(SYS_PIPE, pipefd);
+}
