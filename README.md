@@ -1,8 +1,5 @@
 # toyOS
 一个玩具OS, 32bit
-
-思路和实现上参考了[《操作系统真象还原》](http://www.epubit.com.cn/book/details/4222)，强烈推荐一下这本书
-
 最终实现了一个简易的可交互的Shell
 ![](./resource/shell.png)
 
